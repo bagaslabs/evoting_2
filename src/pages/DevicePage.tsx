@@ -219,8 +219,14 @@ export default function DevicePage() {
       );
     }
     if (stage === "voting") {
-      return (
-        <VotingBallot candidates={candidates} onSelect={handleSelectCandidate} />
+      return verifiedVoter ? (
+        <VotingBallot
+          candidates={candidates}
+          voter={verifiedVoter}
+          onSelect={handleSelectCandidate}
+        />
+      ) : (
+        <DeviceStageMessage stage="idle" onVerify={handleVerify} />
       );
     }
     if (stage === "thanks") {

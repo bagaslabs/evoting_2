@@ -20,6 +20,8 @@ interface VoterPanelProps {
     statusSaatIni: string;
   }) => Promise<void>;
   onDelete: (voter: AdminVoter) => void;
+  onDeleteAll: () => void;
+  onChangeEligibility: (voter: AdminVoter) => void;
   onReorder: (nim: string, position: number) => Promise<void>;
 }
 
@@ -37,6 +39,8 @@ export function VoterPanel({
   canReorder,
   onAdd,
   onDelete,
+  onDeleteAll,
+  onChangeEligibility,
   onReorder,
 }: VoterPanelProps) {
   const [search, setSearch] = useState("");
@@ -78,8 +82,20 @@ export function VoterPanel({
   return (
     <Panel
       title="Roster pemilih"
-      description="Pilihan kandidat tiap orang tidak ditampilkan demi menjaga kerahasiaan suara."
-      aside={<span className="muted small">{voters.length} pemilih</span>}
+      description="Pilihan kandidat tetap rahasia. Status eligible tiap peserta dapat diatur dari daftar."
+      aside={
+        <div className="voter-panel-actions">
+          <span className="muted small">{voters.length} pemilih</span>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={onDeleteAll}
+            disabled={election.election_state !== "closed" || voters.length === 0}
+          >
+            Hapus semua pemilih
+          </Button>
+        </div>
+      }
     >
       <details className="disclosure">
         <summary>Tambah pemilih</summary>
@@ -169,19 +185,29 @@ export function VoterPanel({
                   />
                 </td>
                 <td>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => onDelete(voter)}
-                    disabled={
-                      election.election_state !== "closed" ||
-                      voter.has_voted ||
-                      voter.has_assignment_history
-                    }
-                    title="Hanya pemilih yang belum memilih dan belum pernah mendapat assignment yang dapat dihapus."
-                  >
-                    Hapus
-                  </Button>
+                  <div className="button-row voter-actions">
+                    <Button
+                      size="sm"
+                      variant={voter.eligible ? "danger" : "secondary"}
+                      onClick={() => onChangeEligibility(voter)}
+                    >
+                      {voter.eligible ? "Jadikan non-eligible" : "Jadikan eligible"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => onDelete(voter)}
+                      disabled={
+                        election.election_state !== "closed" ||
+                        voter.has_voted ||
+                        voter.has_voted_any_round ||
+                        voter.has_assignment_history
+                      }
+                      title="Pemilih yang sudah memilih di babak mana pun atau pernah mendapat assignment tidak dapat dihapus."
+                    >
+                      Hapus
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

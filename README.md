@@ -12,8 +12,16 @@ realtime, dan penyimpanan foto kandidat.
 - Pengaturan publikasi hasil serta persentase partisipasi.
 - Manajemen perangkat voting: daftar, aktif/nonaktif, rotasi token, salin token,
   assign pemilih berikutnya, dan paksa lepas assignment.
-- Roster pemilih: pencarian, tambah, hapus, impor JSON, dan pengaturan urutan
-  antrean.
+- Pengelolaan antrean ada di dashboard `/admin`, pada panel "Assignment aktif"
+  dan "Impor data dan antrean". Papan antrean khusus tersedia di
+  `/admin/queue`, dengan jalur otomatis per perangkat aktif. Publik dapat
+  melihat nomor yang sedang dilayani dan nama perangkat di `/antrian`, tanpa
+  nama atau NIM pemilih.
+- Roster pemilih: pencarian, tambah, hapus satu atau semua peserta, impor JSON,
+  pengaturan urutan antrean, serta pengaturan status eligible. Penghapusan
+  massal mempertahankan surat suara anonim, tetapi menghapus catatan partisipasi
+  per pemilih. Status eligible yang diatur manual tetap berlaku saat roster
+  diimpor ulang.
 - Manajemen kandidat: tambah, ubah, aktif/nonaktif, unggah/hapus foto.
 - Audit log, pembaruan realtime dengan fallback polling 15 detik, dan ubah kata
   sandi admin.
@@ -27,8 +35,11 @@ realtime, dan penyimpanan foto kandidat.
 | `/`            | Landing page                  |
 | `/admin`       | Login atau dashboard admin    |
 | `/admin/login` | Login admin                   |
+| `/admin/queue` | Papan antrean admin per perangkat |
 | `/device`      | Perangkat voting              |
+| `/antrian`     | Nomor yang sedang dilayani per perangkat |
 | `/results`     | Hasil pemilihan publik        |
+| `/results/babak-1` | Hasil babak tertentu       |
 | `*`            | Halaman tidak ditemukan       |
 
 ## Persiapan
@@ -54,6 +65,9 @@ realtime, dan penyimpanan foto kandidat.
    boleh diekspos ke frontend atau ke variabel `VITE_*`.
 
 3. Terapkan migrasi di folder `supabase/migrations` ke project Supabase.
+   Setiap babak menyimpan suara dan hasil secara terpisah; admin dapat memilih
+   kandidat tiap babak dari dashboard. Hasil tersedia melalui URL seperti
+   `/results/babak-1`.
 
 4. Jalankan aplikasi:
 

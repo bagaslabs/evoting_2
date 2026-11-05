@@ -10,6 +10,7 @@ import { AuditPanel } from "../components/admin/AuditPanel";
 import { CandidatePanel } from "../components/admin/CandidatePanel";
 import { DashboardSummary } from "../components/admin/DashboardSummary";
 import { DevicePanel } from "../components/admin/DevicePanel";
+import { ElectionRoundsPanel } from "../components/admin/ElectionRoundsPanel";
 import { ElectionControls } from "../components/admin/ElectionControls";
 import { ImportPanel } from "../components/admin/ImportPanel";
 import { LoginPanel } from "../components/admin/LoginPanel";
@@ -25,7 +26,10 @@ import {
   assignNextVoterToDevice,
   cancelQueueAssignment,
   changeAdminPassword,
+  createElectionRound,
   createVotingDevice,
+  deleteAllVoters,
+  deleteElectionRound,
   deleteVoter,
   forceReleaseDevice,
   getCurrentSession,
@@ -35,9 +39,11 @@ import {
   rotateVotingDeviceToken,
   saveCandidate,
   setDeviceActive,
+  selectElectionRound,
   setElectionState,
   setQueueOrder,
   setResultsPublication,
+  setVoterEligibility,
   signInAdmin,
   signOutAdmin,
 } from "../services/election";
@@ -46,6 +52,7 @@ import type {
   AdminVoter,
   Candidate,
   CandidateInput,
+  ElectionRound,
   ElectionState,
   QueueAssignment,
   VotingDevice,
@@ -233,6 +240,23 @@ export default function AdminPage() {
     }
   }
 
+  async function handleCreateRound(candidateIds: string[]) {
+    const round = await createElectionRound(candidateIds);
+    if (await refreshAfterAction()) {
+      setNotice({
+        kind: "success",
+        message: `${round.title} dibuat dan sekarang aktif.`,
+      });
+    }
+  }
+
+  async function handleSelectRound(roundId: string) {
+    await selectElectionRound(roundId);
+    if (await refreshAfterAction()) {
+      setNotice({ kind: "success", message: "Babak aktif berhasil diganti." });
+    }
+  }
+
   async function handleSavePublication(published: boolean, participation: boolean) {
     await setResultsPublication(published, participation);
     if (await refreshAfterAction()) {
@@ -361,6 +385,89 @@ export default function AdminPage() {
         setDialog(null);
         if (refreshed) {
           setNotice({ kind: "success", message: "Data pemilih berhasil dihapus." });
+        }
+      },
+    });
+  }
+
+  function openDeleteAllVoters() {
+    const voterCount = data?.voters.length ?? 0;
+    if (voterCount === 0) return;
+
+    setDialog({
+      config: {
+        title: `Hapus semua ${voterCount} data pemilih?`,
+        description:
+          "Tindakan permanen ini menghapus roster pemilih, riwayat antrean, dan catatan partisipasi per pemilih di semua babak. Surat suara anonim dan perolehan suara tetap dipertahankan, tetapi persentase partisipasi dapat berubah. Pastikan pemilihan sudah ditutup.",
+        confirmLabel: "Hapus semua pemilih",
+        tone: "danger",
+        mode: "confirm",
+      },
+      action: async () => {
+        const deletedCount = await deleteAllVoters();
+        const refreshed = await refreshAfterAction();
+        setDialog(null);
+        if (refreshed) {
+          setNotice({
+            kind: "success",
+            message: `${deletedCount} data pemilih berhasil dihapus. Surat suara dan hasil tetap dipertahankan.`,
+          });
+        }
+      },
+    });
+  }
+
+  function openChangeVoterEligibility(voter: AdminVoter) {
+    const nextEligible = !voter.eligible;
+    setDialog({
+      config: {
+        title: nextEligible
+          ? `Jadikan ${voter.nama} eligible?`
+          : `Jadikan ${voter.nama} non-eligible?`,
+        description: nextEligible
+          ? voter.has_voted
+            ? "Status eligible akan diaktifkan, tetapi peserta yang sudah memilih pada babak ini tetap tidak dapat memilih lagi."
+            : "Peserta akan dimasukkan kembali ke antrean perangkat aktif."
+          : voter.device_name
+            ? `Assignment aktif pada ${voter.device_name} akan dicabut dan nomor antreannya dihapus. Peserta dapat dimasukkan kembali ke antrean dengan menjadikannya eligible.`
+            : "Nomor peserta akan dihapus dari antrean. Peserta dapat dimasukkan kembali ke antrean dengan menjadikannya eligible.",
+        confirmLabel: nextEligible ? "Jadikan eligible" : "Jadikan non-eligible",
+        tone: nextEligible ? "primary" : "danger",
+        mode: "confirm",
+      },
+      action: async () => {
+        await setVoterEligibility(voter.nim, nextEligible);
+        const refreshed = await refreshAfterAction();
+        setDialog(null);
+        if (refreshed) {
+          setNotice({
+            kind: "success",
+            message: `${voter.nama} sekarang ${nextEligible ? "eligible" : "non-eligible"}.`,
+          });
+        }
+      },
+    });
+  }
+
+  function openDeleteRound(round: ElectionRound) {
+    setDialog({
+      config: {
+        title: `Hapus ${round.title}?`,
+        description:
+          "Semua suara dan hasil babak ini, konfigurasi kandidat, serta catatan partisipasinya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan. Pemilihan harus ditutup dan babak lain harus dijadikan aktif terlebih dahulu.",
+        confirmLabel: "Hapus babak",
+        tone: "danger",
+        mode: "confirm",
+      },
+      action: async () => {
+        await deleteElectionRound(round.id);
+        const refreshed = await refreshAfterAction();
+        setDialog(null);
+        if (refreshed) {
+          setNotice({
+            kind: "success",
+            message: `${round.title} berhasil dihapus.`,
+          });
         }
       },
     });
@@ -499,6 +606,15 @@ export default function AdminPage() {
       <Notice kind={notice?.kind}>{notice?.message}</Notice>
       <DashboardSummary statistics={data.statistics} />
 
+      <ElectionRoundsPanel
+        election={data.election}
+        rounds={data.rounds}
+        candidates={data.candidates}
+        onCreate={handleCreateRound}
+        onSelect={handleSelectRound}
+        onDelete={openDeleteRound}
+      />
+
       <div className="admin-grid">
         <ElectionControls
           state={data.election.election_state}
@@ -533,6 +649,8 @@ export default function AdminPage() {
         canReorder={canReorderVoters}
         onAdd={handleAddVoter}
         onDelete={openDeleteVoter}
+        onDeleteAll={openDeleteAllVoters}
+        onChangeEligibility={openChangeVoterEligibility}
         onReorder={handleReorderVoter}
       />
 

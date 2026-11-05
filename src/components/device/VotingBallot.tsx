@@ -1,15 +1,24 @@
-import type { DeviceCandidate } from "../../types/election";
+import type { DeviceCandidate, VerifiedVoter } from "../../types/election";
 import { safeImageUrl } from "../../utils/format";
 import { Button } from "../ui/Button";
 
 interface VotingBallotProps {
   candidates: DeviceCandidate[];
+  voter: Pick<VerifiedVoter, "nama" | "nim">;
   onSelect: (candidate: DeviceCandidate) => void;
 }
 
-export function VotingBallot({ candidates, onSelect }: VotingBallotProps) {
+export function VotingBallot({
+  candidates,
+  voter,
+  onSelect,
+}: VotingBallotProps) {
   return (
     <div className="voting-ballot">
+      <aside className="voter-identity-overlay" aria-label="Identitas pemilih">
+        <strong>{voter.nama}</strong>
+        <span>NIM: {voter.nim}</span>
+      </aside>
       <p className="section-marker">Pilih satu kandidat</p>
       <h2>Pilihan Anda bersifat rahasia.</h2>
       <p className="muted">

@@ -2,6 +2,7 @@ import { getSupabase, supabaseUrl } from "../lib/supabase";
 import type {
   AdminDashboard,
   AdminData,
+  AdminQueueSnapshot,
   AdminVoter,
   CandidateInput,
   CastVoteResult,
@@ -9,6 +10,7 @@ import type {
   DevicePollResult,
   DeviceToken,
   ElectionState,
+  PublicQueueEntry,
   PublicResults,
   VerifyVoterResult,
 } from "../types/election";
@@ -23,6 +25,10 @@ export function fetchAdminDashboard() {
 
 export function fetchAdminVoterRoster() {
   return rpc<AdminVoter[]>("get_admin_voter_roster");
+}
+
+export async function fetchAdminQueueData() {
+  return rpc<AdminQueueSnapshot>("get_admin_queue_board");
 }
 
 export function fetchVotingDeviceTokens() {
@@ -42,6 +48,7 @@ export async function loadAdminData(): Promise<AdminData> {
 
   return {
     ...dashboard,
+    rounds: dashboard.rounds ?? [],
     devices: dashboard.devices.map((device) => ({
       ...device,
       token: tokenByDeviceId.get(device.id) ?? null,
@@ -75,6 +82,21 @@ export function setResultsPublication(published: boolean, showParticipation: boo
   });
 }
 
+export function createElectionRound(candidateIds: string[]) {
+  return rpc<{ id: string; round_number: number; title: string }>(
+    "create_election_round",
+    { p_candidate_ids: candidateIds },
+  );
+}
+
+export function selectElectionRound(roundId: string) {
+  return rpc<void>("select_election_round", { p_round_id: roundId });
+}
+
+export function deleteElectionRound(roundId: string) {
+  return rpc<void>("delete_election_round", { p_round_id: roundId });
+}
+
 export function createVotingDevice(name: string) {
   return rpc<{ device_id: string; name: string }>("create_voting_device", {
     p_name: name,
@@ -104,6 +126,17 @@ export function cancelQueueAssignment(assignmentId: string, reason: string) {
 
 export function deleteVoter(nim: string) {
   return rpc<void>("delete_voter", { p_nim: nim });
+}
+
+export function deleteAllVoters() {
+  return rpc<number>("delete_all_voters");
+}
+
+export function setVoterEligibility(nim: string, eligible: boolean) {
+  return rpc<void>("set_voter_eligibility", {
+    p_nim: nim,
+    p_eligible: eligible,
+  });
 }
 
 export function assignNextVoterToDevice(deviceId: string) {
@@ -228,8 +261,16 @@ export async function saveCandidate(
   }
 }
 
-export function getPublicResults() {
-  return rpc<PublicResults>("get_public_results");
+export function getPublicResults(roundNumber?: number) {
+  return roundNumber === undefined
+    ? rpc<PublicResults>("get_public_results")
+    : rpc<PublicResults>("get_public_results", {
+        p_round_number: roundNumber,
+      });
+}
+
+export function getPublicCurrentQueue() {
+      return rpc<PublicQueueEntry[]>("get_public_current_queue");
 }
 
 export async function changeAdminPassword(currentPassword: string, nextPassword: string) {

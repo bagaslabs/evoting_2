@@ -4,7 +4,10 @@ export function HeroSection() {
   return (
     <div className="hero-copy">
       <p className="hero-kicker">Pemilihan Ketua Angkatan 2026</p>
-      <h1>Suara Anda menentukan arah angkatan.</h1>
+      <h1>
+        <span className="hero-title-line">Suara Anda, masa</span>
+        <span className="hero-title-line">depan angkatan.</span>
+      </h1>
       <p className="hero-lead">
         Pemungutan suara dilakukan melalui perangkat yang telah didaftarkan
         panitia. Setiap suara tercatat rahasia, dan hanya hasil agregat yang

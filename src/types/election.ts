@@ -4,9 +4,21 @@ export interface ElectionSettings {
   singleton: boolean;
   title: string;
   election_state: ElectionState;
+  active_round_id?: string | null;
+  active_round_number?: number | null;
+  active_round_title?: string | null;
   results_published: boolean;
   show_public_participation: boolean;
   updated_at: string;
+}
+
+export interface ElectionRound {
+  id: string;
+  round_number: number;
+  title: string;
+  results_published: boolean;
+  show_public_participation: boolean;
+  candidate_ids: string[];
 }
 
 export interface ElectionStatistics {
@@ -62,6 +74,7 @@ export interface AdminDashboard {
   election: ElectionSettings;
   statistics: ElectionStatistics;
   candidates: Candidate[];
+  rounds: ElectionRound[];
   devices: VotingDevice[];
   assignments: QueueAssignment[];
   queue_order: QueueOrderItem[];
@@ -75,14 +88,43 @@ export interface AdminVoter {
   nim: string;
   eligible: boolean;
   has_voted: boolean;
+  has_voted_any_round: boolean;
   queue_state: QueueState;
   queue_position: number;
+  queue_device_id: string | null;
   device_name: string | null;
   has_assignment_history: boolean;
 }
 
 export interface AdminData extends AdminDashboard {
   voters: AdminVoter[];
+}
+
+export interface AdminQueueSnapshot {
+  devices: AdminQueueDevice[];
+  voters: AdminQueueVoter[];
+}
+
+export interface AdminQueueDevice {
+  id: string;
+  name: string;
+  active: boolean;
+  connected: boolean;
+}
+
+export interface AdminQueueVoter {
+  nama: string;
+  nim: string;
+  eligible: boolean;
+  has_voted: boolean;
+  queue_state: QueueState;
+  queue_position: number;
+  queue_device_id: string | null;
+}
+
+export interface PublicQueueEntry {
+  device_name: string;
+  queue_number: number;
 }
 
 export interface DeviceToken {

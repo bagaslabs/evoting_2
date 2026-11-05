@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router";
 import { ResultsContent } from "../components/results/ResultsContent";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
@@ -10,6 +11,7 @@ import type { PublicResults } from "../types/election";
 import { getErrorMessage } from "../utils/errors";
 
 export default function ResultsPage() {
+  const { roundSlug } = useParams();
   const [results, setResults] = useState<PublicResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +20,19 @@ export default function ResultsPage() {
     setLoading(true);
     setError(null);
     try {
-      setResults(await getPublicResults());
+      if (roundSlug === undefined) {
+        setResults(await getPublicResults());
+      } else {
+        const match = /^babak-(\d+)$/.exec(roundSlug);
+        if (!match) throw new Error("Alamat hasil babak tidak valid.");
+        setResults(await getPublicResults(Number(match[1])));
+      }
     } catch (loadError) {
       setError(getErrorMessage(loadError));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [roundSlug]);
 
   useEffect(() => {
     void load();

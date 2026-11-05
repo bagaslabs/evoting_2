@@ -8,6 +8,7 @@ export default function LandingPage() {
     <main className="page landing">
       <SiteHeader
         nav={[
+          { label: "Antrean saat ini", to: "/antrian" },
           { label: "Hasil pemilihan", to: "/results" },
           { label: "Admin", to: "/admin" },
         ]}

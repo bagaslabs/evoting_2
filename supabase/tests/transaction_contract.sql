@@ -36,6 +36,28 @@ begin
     raise exception 'Row-level security must be enabled for ballots';
   end if;
 
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'ballots'
+      and column_name = 'round_id'
+  ) then
+    raise exception 'Every ballot must be assigned to an election round';
+  end if;
+
+  if not exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'round_voter_participation'
+  ) then
+    raise exception 'Per-round voter participation must be tracked separately from ballots';
+  end if;
+
+  if has_table_privilege('anon', 'public.round_voter_participation', 'select')
+     or has_table_privilege('authenticated', 'public.round_voter_participation', 'select') then
+    raise exception 'Clients must not be able to read per-round voter participation records';
+  end if;
+
   if has_table_privilege('anon', 'public.ballots', 'select')
      or has_table_privilege('authenticated', 'public.ballots', 'select') then
     raise exception 'Clients must not be able to read individual ballots';
@@ -43,6 +65,36 @@ begin
 
   if not has_function_privilege('anon', 'public.get_public_results()', 'execute') then
     raise exception 'Public aggregate results endpoint must be executable by visitors';
+  end if;
+
+  if not has_function_privilege('anon', 'public.get_public_results(integer)', 'execute') then
+    raise exception 'Public results endpoint for a specific round must be executable by visitors';
+  end if;
+
+  if not has_function_privilege('anon', 'public.get_public_current_queue()', 'execute') then
+    raise exception 'Public queue status endpoint must be executable by visitors';
+  end if;
+
+  if position(
+       '''nim''' in pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
+     ) > 0
+     or position(
+       '''nama''' in pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
+     ) > 0 then
+    raise exception 'Public queue endpoint must not return voter names or NIMs';
+  end if;
+
+  if has_function_privilege('anon', 'public.create_election_round(uuid[])', 'execute')
+     or has_function_privilege('anon', 'public.select_election_round(uuid)', 'execute')
+     or has_function_privilege('anon', 'public.delete_election_round(uuid)', 'execute') then
+    raise exception 'Anonymous users must not be able to create, switch, or delete election rounds';
+  end if;
+
+  if position(
+       'delete from public.ballots' in
+       lower(pg_get_functiondef('public.delete_election_round(uuid)'::regprocedure))
+     ) = 0 then
+    raise exception 'Deleting an election round must remove its ballots';
   end if;
 
   if has_function_privilege('anon', 'public.get_admin_dashboard()', 'execute') then
@@ -69,8 +121,39 @@ begin
     raise exception 'Anonymous users must not be able to read the admin voter roster';
   end if;
 
+  if has_function_privilege('anon', 'public.get_admin_queue_board()', 'execute')
+     or not has_function_privilege('authenticated', 'public.get_admin_queue_board()', 'execute') then
+    raise exception 'Only authenticated admins may read the device queue board';
+  end if;
+
   if not has_function_privilege('authenticated', 'public.get_admin_voter_roster()', 'execute') then
     raise exception 'Authenticated admins must be able to read the voter roster';
+  end if;
+
+  if has_table_privilege('anon', 'public.voters', 'select')
+     or has_table_privilege('authenticated', 'public.voters', 'select') then
+    raise exception 'Clients must not directly read the voter roster table';
+  end if;
+
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'voters'
+      and column_name = 'queue_device_id'
+  ) then
+    raise exception 'Waiting voters must be assigned to a device lane';
+  end if;
+
+  if position(
+       'queue_device_id = p_device_id'
+       in pg_get_functiondef('public.assign_next_to_device(uuid)'::regprocedure)
+     ) = 0 then
+    raise exception 'A device may only assign voters from its own queue lane';
+  end if;
+
+  if has_function_privilege('anon', 'public.set_voter_eligibility(text,boolean)', 'execute')
+     or not has_function_privilege('authenticated', 'public.set_voter_eligibility(text,boolean)', 'execute') then
+    raise exception 'Only authenticated admins may change voter eligibility';
   end if;
 
   if pg_get_functiondef('public.get_admin_voter_roster()'::regprocedure) ilike '%ballots%' then
@@ -79,14 +162,22 @@ begin
 
   if has_function_privilege('anon', 'public.add_voter(text,text,text,date,text)', 'execute')
      or has_function_privilege('anon', 'public.delete_voter(text)', 'execute')
+     or has_function_privilege('anon', 'public.delete_all_voters()', 'execute')
+     or has_function_privilege('anon', 'public.set_voter_eligibility(text,boolean)', 'execute')
      or has_function_privilege('anon', 'public.assign_next_voter_to_device(uuid)', 'execute') then
     raise exception 'Anonymous users must not be able to modify voter records or queue assignments';
   end if;
 
   if not has_function_privilege('authenticated', 'public.add_voter(text,text,text,date,text)', 'execute')
      or not has_function_privilege('authenticated', 'public.delete_voter(text)', 'execute')
+     or not has_function_privilege('authenticated', 'public.delete_all_voters()', 'execute')
+     or not has_function_privilege('authenticated', 'public.set_voter_eligibility(text,boolean)', 'execute')
      or not has_function_privilege('authenticated', 'public.assign_next_voter_to_device(uuid)', 'execute') then
     raise exception 'Authenticated admins must be able to manage voters and next-device assignments';
+  end if;
+
+  if has_function_privilege('anon', 'public.assign_next_to_device(uuid)', 'execute') then
+    raise exception 'Anonymous users must not be able to directly assign voters to a device';
   end if;
 
   if has_table_privilege('authenticated', 'vault.decrypted_secrets', 'select') then
