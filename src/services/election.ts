@@ -45,9 +45,20 @@ export async function loadAdminData(): Promise<AdminData> {
   const tokenByDeviceId = new Map(
     tokens.map(({ device_id, token }) => [device_id, token]),
   );
+  const eligibleVoters = voters.filter(({ eligible }) => eligible).length;
+  const statistics = dashboard.election.active_round_id
+    ? dashboard.statistics
+    : {
+        eligible: eligibleVoters,
+        voted: 0,
+        remaining: eligibleVoters,
+        participation_percentage: 0,
+        total_ballots: 0,
+      };
 
   return {
     ...dashboard,
+    statistics,
     rounds: dashboard.rounds ?? [],
     devices: dashboard.devices.map((device) => ({
       ...device,
@@ -82,11 +93,18 @@ export function setResultsPublication(published: boolean, showParticipation: boo
   });
 }
 
-export function createElectionRound(candidateIds: string[]) {
+export function createElectionRound(title: string, candidateIds: string[]) {
   return rpc<{ id: string; round_number: number; title: string }>(
     "create_election_round",
-    { p_candidate_ids: candidateIds },
+    { p_title: title, p_candidate_ids: candidateIds },
   );
+}
+
+export function renameElectionRound(roundId: string, title: string) {
+  return rpc<void>("rename_election_round", {
+    p_round_id: roundId,
+    p_title: title,
+  });
 }
 
 export function selectElectionRound(roundId: string) {
@@ -101,6 +119,10 @@ export function createVotingDevice(name: string) {
   return rpc<{ device_id: string; name: string }>("create_voting_device", {
     p_name: name,
   });
+}
+
+export function deleteVotingDevice(deviceId: string) {
+  return rpc<void>("delete_voting_device", { p_device_id: deviceId });
 }
 
 export function setDeviceActive(deviceId: string, isActive: boolean) {

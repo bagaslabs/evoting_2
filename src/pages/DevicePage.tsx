@@ -3,7 +3,6 @@ import { Brand } from "../components/Brand";
 import { DeviceHeader } from "../components/device/DeviceHeader";
 import { DeviceSetupForm } from "../components/device/DeviceSetupForm";
 import { DeviceStageMessage } from "../components/device/DeviceStageMessage";
-import { EmptyQueueStage } from "../components/device/EmptyQueueStage";
 import { ThankYouStage } from "../components/device/ThankYouStage";
 import { VoterBiodata } from "../components/device/VoterBiodata";
 import { VotingBallot } from "../components/device/VotingBallot";
@@ -21,7 +20,7 @@ import type {
   DeviceStage,
   VerifiedVoter,
 } from "../types/election";
-import { DEVICE_TOKEN_KEY, NIM_MISMATCH_MESSAGE } from "../utils/constants";
+import { DEVICE_TOKEN_KEY } from "../utils/constants";
 import { getErrorMessage } from "../utils/errors";
 
 interface DeviceNotice {
@@ -30,11 +29,9 @@ interface DeviceNotice {
 }
 
 const VERIFY_MESSAGES: Record<string, string> = {
-  nim_mismatch: NIM_MISMATCH_MESSAGE,
   nim_not_found: "NIM tidak ditemukan dalam data pemilih. Silakan periksa kembali.",
   not_eligible: "NIM ini tidak memenuhi syarat untuk memilih.",
   already_voted: "NIM ini tercatat sudah memilih.",
-  no_assignment: "Perangkat ini belum memiliki antrean aktif.",
   election_not_open: "Pemilihan sedang tidak dibuka.",
   device_inactive: "Perangkat dinonaktifkan admin.",
 };
@@ -238,7 +235,7 @@ export default function DevicePage() {
       );
     }
     if (stage === "empty") {
-      return <EmptyQueueStage />;
+      return <DeviceStageMessage stage="empty" onVerify={handleVerify} />;
     }
     return <DeviceStageMessage stage={stage} onVerify={handleVerify} />;
   }
@@ -256,7 +253,7 @@ export default function DevicePage() {
 
   return (
     <main className="device-layout">
-      <DeviceHeader connection={connection} />
+      <DeviceHeader connection={connection} onChangeToken={handleDisconnect} />
 
       <section className="device-card">
         <div className="device-copy">
@@ -275,7 +272,7 @@ export default function DevicePage() {
 
       <footer className="site-footer">
         <button type="button" className="text-button" onClick={handleDisconnect}>
-          Ganti identitas perangkat
+          Ganti token perangkat
         </button>
       </footer>
 

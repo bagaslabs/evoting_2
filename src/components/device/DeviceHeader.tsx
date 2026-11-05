@@ -1,10 +1,21 @@
 import { Brand } from "../Brand";
+import { Button } from "../ui/Button";
 
-export function DeviceHeader({ connection }: { connection: string }) {
+interface DeviceHeaderProps {
+  connection: string;
+  onChangeToken: () => void;
+}
+
+export function DeviceHeader({ connection, onChangeToken }: DeviceHeaderProps) {
   return (
     <header className="device-header">
       <Brand />
-      <span className="muted small">{connection}</span>
+      <div className="device-header-actions">
+        <span className="muted small">{connection}</span>
+        <Button size="sm" variant="secondary" onClick={onChangeToken}>
+          Ganti token
+        </Button>
+      </div>
     </header>
   );
 }

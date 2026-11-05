@@ -30,12 +30,14 @@ import {
   createVotingDevice,
   deleteAllVoters,
   deleteElectionRound,
+  deleteVotingDevice,
   deleteVoter,
   forceReleaseDevice,
   getCurrentSession,
   importVoters,
   isPermissionError,
   loadAdminData,
+  renameElectionRound,
   rotateVotingDeviceToken,
   saveCandidate,
   setDeviceActive,
@@ -240,8 +242,8 @@ export default function AdminPage() {
     }
   }
 
-  async function handleCreateRound(candidateIds: string[]) {
-    const round = await createElectionRound(candidateIds);
+  async function handleCreateRound(title: string, candidateIds: string[]) {
+    const round = await createElectionRound(title, candidateIds);
     if (await refreshAfterAction()) {
       setNotice({
         kind: "success",
@@ -343,6 +345,30 @@ export default function AdminPage() {
         setDialog(null);
         if (refreshed) {
           setNotice({ kind: "success", message: "Assignment berhasil dilepas." });
+        }
+      },
+    });
+  }
+
+  function openDeleteDevice(device: VotingDevice) {
+    setDialog({
+      config: {
+        title: `Hapus perangkat ${device.name}?`,
+        description:
+          "Perangkat dan seluruh riwayat assignment-nya akan dihapus permanen. Pemilih dan suara tidak terhapus; antrean menunggu akan dibagikan ulang ke perangkat aktif yang tersisa. Pemilihan harus ditutup dan perangkat tidak boleh memiliki assignment aktif.",
+        confirmLabel: "Hapus perangkat",
+        tone: "danger",
+        mode: "confirm",
+      },
+      action: async () => {
+        await deleteVotingDevice(device.id);
+        const refreshed = await refreshAfterAction();
+        setDialog(null);
+        if (refreshed) {
+          setNotice({
+            kind: "success",
+            message: `Perangkat ${device.name} berhasil dihapus.`,
+          });
         }
       },
     });
@@ -453,8 +479,11 @@ export default function AdminPage() {
     setDialog({
       config: {
         title: `Hapus ${round.title}?`,
-        description:
-          "Semua suara dan hasil babak ini, konfigurasi kandidat, serta catatan partisipasinya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan. Pemilihan harus ditutup dan babak lain harus dijadikan aktif terlebih dahulu.",
+        description: `${
+          round.id === data?.election.active_round_id
+            ? "Babak ini sedang aktif. Babak lain yang tersisa akan otomatis diaktifkan, atau tidak ada babak aktif jika ini satu-satunya babak. "
+            : ""
+        }Semua suara dan hasil babak ini, konfigurasi kandidat, serta catatan partisipasinya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan. Pemilihan harus ditutup terlebih dahulu.`,
         confirmLabel: "Hapus babak",
         tone: "danger",
         mode: "confirm",
@@ -467,6 +496,31 @@ export default function AdminPage() {
           setNotice({
             kind: "success",
             message: `${round.title} berhasil dihapus.`,
+          });
+        }
+      },
+    });
+  }
+
+  function openRenameRound(round: ElectionRound) {
+    setDialog({
+      config: {
+        title: `Ubah nama ${round.title}`,
+        description: "Masukkan nama baru untuk babak ini.",
+        confirmLabel: "Simpan nama",
+        tone: "primary",
+        mode: "prompt",
+        inputLabel: "Nama babak",
+        inputPlaceholder: round.title,
+      },
+      action: async (title) => {
+        await renameElectionRound(round.id, title);
+        const refreshed = await refreshAfterAction();
+        setDialog(null);
+        if (refreshed) {
+          setNotice({
+            kind: "success",
+            message: `Nama babak diperbarui menjadi ${title}.`,
           });
         }
       },
@@ -613,6 +667,7 @@ export default function AdminPage() {
         onCreate={handleCreateRound}
         onSelect={handleSelectRound}
         onDelete={openDeleteRound}
+        onRename={openRenameRound}
       />
 
       <div className="admin-grid">
@@ -634,6 +689,7 @@ export default function AdminPage() {
           onToggle={handleToggleDevice}
           onAssignNext={handleAssignNext}
           onForceRelease={openForceRelease}
+          onDelete={openDeleteDevice}
           onRotateToken={openRotateToken}
           onCopyToken={handleCopyToken}
         />

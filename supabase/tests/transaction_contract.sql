@@ -81,13 +81,48 @@ begin
      or position(
        '''nama''' in pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
      ) > 0 then
-    raise exception 'Public queue endpoint must not return voter names or NIMs';
+    raise exception 'Public queue endpoint must not return voter names or full NIMs';
   end if;
 
-  if has_function_privilege('anon', 'public.create_election_round(uuid[])', 'execute')
+  if position(
+       'right(v.nim, 3)' in
+       lower(pg_get_functiondef('public.get_public_current_queue()'::regprocedure))
+     ) = 0 then
+    raise exception 'Public queue endpoint must return only the final three NIM digits';
+  end if;
+
+  if position(
+       'no_assignment' in
+       lower(pg_get_functiondef('public.verify_voter_for_device(text,text)'::regprocedure))
+     ) > 0
+     or position(
+       'nim_mismatch' in
+       lower(pg_get_functiondef('public.cast_vote(text,text,uuid)'::regprocedure))
+     ) > 0 then
+    raise exception 'Voting must not be restricted to the device queue assignment';
+  end if;
+
+  if has_function_privilege('anon', 'public.create_election_round(text,uuid[])', 'execute')
      or has_function_privilege('anon', 'public.select_election_round(uuid)', 'execute')
      or has_function_privilege('anon', 'public.delete_election_round(uuid)', 'execute') then
     raise exception 'Anonymous users must not be able to create, switch, or delete election rounds';
+  end if;
+
+  if not has_function_privilege('authenticated', 'public.create_election_round(text,uuid[])', 'execute')
+     or not has_function_privilege('authenticated', 'public.rename_election_round(uuid,text)', 'execute') then
+    raise exception 'Authenticated admins must be able to create and rename election rounds';
+  end if;
+
+  if has_function_privilege('anon', 'public.delete_voting_device(uuid)', 'execute')
+     or not has_function_privilege('authenticated', 'public.delete_voting_device(uuid)', 'execute') then
+    raise exception 'Only authenticated admins may delete voting devices';
+  end if;
+
+  if position(
+       'delete from public.queue_assignments' in
+       lower(pg_get_functiondef('public.delete_voting_device(uuid)'::regprocedure))
+     ) = 0 then
+    raise exception 'Deleting a voting device must remove its assignment history';
   end if;
 
   if position(
@@ -95,6 +130,13 @@ begin
        lower(pg_get_functiondef('public.delete_election_round(uuid)'::regprocedure))
      ) = 0 then
     raise exception 'Deleting an election round must remove its ballots';
+  end if;
+
+  if position(
+       'pilih babak lain sebagai babak aktif' in
+       lower(pg_get_functiondef('public.delete_election_round(uuid)'::regprocedure))
+     ) > 0 then
+    raise exception 'Deleting the active election round must be allowed';
   end if;
 
   if has_function_privilege('anon', 'public.get_admin_dashboard()', 'execute') then

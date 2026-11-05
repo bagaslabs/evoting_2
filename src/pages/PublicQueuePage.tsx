@@ -50,8 +50,8 @@ export default function PublicQueuePage() {
         <p className="section-marker">Informasi pemilihan</p>
         <h1>Antrean saat ini</h1>
         <p className="muted">
-          Nomor yang sedang dilayani di setiap perangkat. Data pemilih tetap
-          dirahasiakan.
+          Tiga digit terakhir NIM yang sedang dilayani di setiap perangkat;
+          NIM lengkap dan nama pemilih tidak ditampilkan.
         </p>
       </section>
 
@@ -82,12 +82,12 @@ export default function PublicQueuePage() {
           {entries.map((entry) => (
             <article
               className="public-queue-card"
-              key={`${entry.device_name}-${entry.queue_number}`}
+              key={`${entry.device_name}-${entry.voter_suffix}`}
             >
               <span className="public-queue-label">Sedang dilayani di</span>
               <h2>{entry.device_name}</h2>
               <strong className="public-queue-number">
-                No. {entry.queue_number}
+                {entry.voter_suffix}
               </strong>
             </article>
           ))}
@@ -99,8 +99,8 @@ export default function PublicQueuePage() {
         <Link to="/admin">Dashboard admin</Link>
       </p>
       <SiteFooter>
-        Halaman ini hanya menampilkan nomor antrean dan perangkat, tanpa nama
-        atau NIM pemilih.
+        Halaman ini hanya menampilkan tiga digit terakhir NIM dan nama
+        perangkat, tanpa nama pemilih atau NIM lengkap.
       </SiteFooter>
     </main>
   );

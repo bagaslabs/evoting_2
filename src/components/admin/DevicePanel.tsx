@@ -15,6 +15,7 @@ interface DevicePanelProps {
   onToggle: (device: VotingDevice) => Promise<void>;
   onAssignNext: (device: VotingDevice) => Promise<void>;
   onForceRelease: (device: VotingDevice) => void;
+  onDelete: (device: VotingDevice) => void;
   onRotateToken: (device: VotingDevice) => void;
   onCopyToken: (device: VotingDevice) => Promise<void>;
 }
@@ -26,6 +27,7 @@ export function DevicePanel({
   onToggle,
   onAssignNext,
   onForceRelease,
+  onDelete,
   onRotateToken,
   onCopyToken,
 }: DevicePanelProps) {
@@ -82,6 +84,7 @@ export function DevicePanel({
             onToggle={onToggle}
             onAssignNext={onAssignNext}
             onForceRelease={onForceRelease}
+            onDelete={onDelete}
             onRotateToken={onRotateToken}
             onCopyToken={onCopyToken}
           />
@@ -97,6 +100,7 @@ interface DeviceRowProps {
   onToggle: (device: VotingDevice) => Promise<void>;
   onAssignNext: (device: VotingDevice) => Promise<void>;
   onForceRelease: (device: VotingDevice) => void;
+  onDelete: (device: VotingDevice) => void;
   onRotateToken: (device: VotingDevice) => void;
   onCopyToken: (device: VotingDevice) => Promise<void>;
 }
@@ -107,6 +111,7 @@ function DeviceRow({
   onToggle,
   onAssignNext,
   onForceRelease,
+  onDelete,
   onRotateToken,
   onCopyToken,
 }: DeviceRowProps) {
@@ -208,6 +213,25 @@ function DeviceRow({
             Paksa lepas
           </Button>
         )}
+        <Button
+          size="sm"
+          variant="danger"
+          onClick={() => onDelete(device)}
+          disabled={
+            pending ||
+            election.election_state !== "closed" ||
+            Boolean(device.active_assignment_id)
+          }
+          title={
+            election.election_state !== "closed"
+              ? "Tutup pemilihan sebelum menghapus perangkat."
+              : device.active_assignment_id
+                ? "Lepaskan assignment aktif sebelum menghapus perangkat."
+                : "Hapus perangkat dan seluruh riwayat assignment-nya."
+          }
+        >
+          Hapus perangkat
+        </Button>
       </div>
     </article>
   );

@@ -1214,7 +1214,7 @@ code {
 .preview-placeholder {
   display: grid;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 5;
   place-items: center;
   background: #dde5dc;
   color: var(--muted);
@@ -1311,6 +1311,12 @@ code {
   justify-content: space-between;
   gap: 18px;
   border-bottom: 1px solid var(--line);
+}
+
+.device-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .device-card {

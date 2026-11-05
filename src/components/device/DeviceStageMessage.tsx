@@ -7,6 +7,7 @@ export type DeviceIdleStage =
   | "idle"
   | "assigned"
   | "waiting"
+  | "empty"
   | "paused"
   | "closed"
   | "inactive";
@@ -21,12 +22,19 @@ const STAGE_COPY: Record<
   { title: string; description: string }
 > = {
   idle: {
-    title: "Menyiapkan antrean…",
-    description: "Perangkat akan menerima antrean berikutnya saat tersedia.",
+    title: "Siap melayani pemilih.",
+    description:
+      "Masukkan NIM eligible yang belum memilih. Antrean tidak membatasi perangkat yang boleh melayani.",
   },
   waiting: {
-    title: "Menunggu antrean berikutnya.",
-    description: "Pemilih berikutnya sedang menggunakan perangkat lain.",
+    title: "Siap melayani pemilih.",
+    description:
+      "Masukkan NIM eligible yang belum memilih. Antrean tidak membatasi perangkat yang boleh melayani.",
+  },
+  empty: {
+    title: "Belum ada antrean yang dipanggil.",
+    description:
+      "Masukkan NIM eligible yang belum memilih. Antrean hanya informasi dan tidak membatasi perangkat.",
   },
   paused: {
     title: "Pemilihan sedang dijeda.",
@@ -49,8 +57,9 @@ export function DeviceStageMessage({ stage, onVerify }: DeviceStageMessageProps)
   const copy =
     stage === "assigned"
       ? {
-          title: "Silakan masukkan NIM Anda.",
-          description: "Masukkan NIM sesuai antrean perangkat ini.",
+          title: "Silakan masukkan NIM pemilih.",
+          description:
+            "Perangkat ini dapat melayani NIM eligible mana pun yang belum memilih; antrean hanya informasi.",
         }
       : STAGE_COPY[stage];
 
@@ -70,7 +79,7 @@ export function DeviceStageMessage({ stage, onVerify }: DeviceStageMessageProps)
       <h2>{copy.title}</h2>
       <p className="muted">{copy.description}</p>
 
-      {stage === "assigned" && (
+      {["assigned", "waiting", "empty", "idle"].includes(stage) && (
         <form className="inline-form voter-entry" onSubmit={handleSubmit}>
           <label htmlFor="voter-nim">NIM</label>
           <Input

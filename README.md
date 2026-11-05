@@ -14,9 +14,10 @@ realtime, dan penyimpanan foto kandidat.
   assign pemilih berikutnya, dan paksa lepas assignment.
 - Pengelolaan antrean ada di dashboard `/admin`, pada panel "Assignment aktif"
   dan "Impor data dan antrean". Papan antrean khusus tersedia di
-  `/admin/queue`, dengan jalur otomatis per perangkat aktif. Publik dapat
-  melihat nomor yang sedang dilayani dan nama perangkat di `/antrian`, tanpa
-  nama atau NIM pemilih.
+  `/admin/queue`, dengan jalur otomatis per perangkat aktif. Assignment
+  antrean menjadi informasi; perangkat aktif dapat melayani NIM eligible yang
+  belum memilih. Publik dapat melihat tiga digit akhir NIM yang sedang dilayani
+  dan nama perangkat di `/antrian`.
 - Roster pemilih: pencarian, tambah, hapus satu atau semua peserta, impor JSON,
   pengaturan urutan antrean, serta pengaturan status eligible. Penghapusan
   massal mempertahankan surat suara anonim, tetapi menghapus catatan partisipasi
@@ -37,7 +38,7 @@ realtime, dan penyimpanan foto kandidat.
 | `/admin/login` | Login admin                   |
 | `/admin/queue` | Papan antrean admin per perangkat |
 | `/device`      | Perangkat voting              |
-| `/antrian`     | Nomor yang sedang dilayani per perangkat |
+| `/antrian`     | Tiga digit akhir NIM yang sedang dilayani per perangkat |
 | `/results`     | Hasil pemilihan publik        |
 | `/results/babak-1` | Hasil babak tertentu       |
 | `*`            | Halaman tidak ditemukan       |
@@ -65,9 +66,9 @@ realtime, dan penyimpanan foto kandidat.
    boleh diekspos ke frontend atau ke variabel `VITE_*`.
 
 3. Terapkan migrasi di folder `supabase/migrations` ke project Supabase.
-   Setiap babak menyimpan suara dan hasil secara terpisah; admin dapat memilih
-   kandidat tiap babak dari dashboard. Hasil tersedia melalui URL seperti
-   `/results/babak-1`.
+   Setiap babak menyimpan suara dan hasil secara terpisah; admin dapat memberi
+   nama babak sendiri, mengubah namanya, dan memilih kandidat dari dashboard.
+   Hasil tersedia melalui URL internal seperti `/results/babak-1`.
 
 4. Jalankan aplikasi:
 
