@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import type { VerifiedVoter } from "../../types/election";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
@@ -15,6 +16,9 @@ export type DeviceIdleStage =
 interface DeviceStageMessageProps {
   stage: DeviceIdleStage;
   onVerify: (nim: string) => Promise<void>;
+  voterMatches: VerifiedVoter[];
+  onSelectVoter: (voter: VerifiedVoter) => void;
+  onClearVoterMatches: () => void;
 }
 
 const STAGE_COPY: Record<
@@ -24,17 +28,17 @@ const STAGE_COPY: Record<
   idle: {
     title: "Siap melayani pemilih.",
     description:
-      "Masukkan NIM eligible yang belum memilih. Antrean tidak membatasi perangkat yang boleh melayani.",
+      "Masukkan tiga digit terakhir NIM pemilih yang eligible dan belum memilih.",
   },
   waiting: {
     title: "Siap melayani pemilih.",
     description:
-      "Masukkan NIM eligible yang belum memilih. Antrean tidak membatasi perangkat yang boleh melayani.",
+      "Masukkan tiga digit terakhir NIM pemilih yang eligible dan belum memilih.",
   },
   empty: {
     title: "Belum ada antrean yang dipanggil.",
     description:
-      "Masukkan NIM eligible yang belum memilih. Antrean hanya informasi dan tidak membatasi perangkat.",
+      "Masukkan tiga digit terakhir NIM pemilih yang eligible dan belum memilih. Antrean hanya informasi.",
   },
   paused: {
     title: "Pemilihan sedang dijeda.",
@@ -50,16 +54,22 @@ const STAGE_COPY: Record<
   },
 };
 
-export function DeviceStageMessage({ stage, onVerify }: DeviceStageMessageProps) {
+export function DeviceStageMessage({
+  stage,
+  onVerify,
+  voterMatches,
+  onSelectVoter,
+  onClearVoterMatches,
+}: DeviceStageMessageProps) {
   const [nim, setNim] = useState("");
   const [busy, setBusy] = useState(false);
 
   const copy =
     stage === "assigned"
       ? {
-          title: "Silakan masukkan NIM pemilih.",
+          title: "Masukkan tiga digit terakhir NIM.",
           description:
-            "Perangkat ini dapat melayani NIM eligible mana pun yang belum memilih; antrean hanya informasi.",
+            "Perangkat ini dapat melayani pemilih eligible mana pun yang belum memilih; antrean hanya informasi.",
         }
       : STAGE_COPY[stage];
 
@@ -81,19 +91,40 @@ export function DeviceStageMessage({ stage, onVerify }: DeviceStageMessageProps)
 
       {["assigned", "waiting", "empty", "idle"].includes(stage) && (
         <form className="inline-form voter-entry" onSubmit={handleSubmit}>
-          <label htmlFor="voter-nim">NIM</label>
+          <label htmlFor="voter-nim">Tiga digit terakhir NIM</label>
           <Input
             id="voter-nim"
             value={nim}
-            onChange={(event) => setNim(event.currentTarget.value)}
+            onChange={(event) => {
+              setNim(event.currentTarget.value.replace(/\D/g, "").slice(0, 3));
+              onClearVoterMatches();
+            }}
             autoComplete="off"
-            inputMode="text"
+            inputMode="numeric"
+            pattern="[0-9]{3}"
+            maxLength={3}
+            placeholder="000"
+            title="Masukkan tepat tiga angka."
             required
           />
           <Button type="submit" disabled={busy}>
             {busy ? "Memeriksa…" : "Cek biodata"}
           </Button>
         </form>
+      )}
+      {voterMatches.length > 0 && (
+        <div className="voter-match-list" aria-live="polite">
+          <p>Beberapa pemilih memiliki tiga digit terakhir yang sama. Pilih nama Anda:</p>
+          {voterMatches.map((voter) => (
+            <Button
+              key={voter.nim}
+              variant="secondary"
+              onClick={() => onSelectVoter(voter)}
+            >
+              {voter.nama}
+            </Button>
+          ))}
+        </div>
       )}
     </div>
   );

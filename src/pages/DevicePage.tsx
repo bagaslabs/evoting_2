@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Brand } from "../components/Brand";
 import { DeviceHeader } from "../components/device/DeviceHeader";
 import { DeviceSetupForm } from "../components/device/DeviceSetupForm";
-import { DeviceStageMessage } from "../components/device/DeviceStageMessage";
+import {
+  DeviceStageMessage,
+  type DeviceIdleStage,
+} from "../components/device/DeviceStageMessage";
 import { ThankYouStage } from "../components/device/ThankYouStage";
 import { VoterBiodata } from "../components/device/VoterBiodata";
 import { VotingBallot } from "../components/device/VotingBallot";
@@ -29,7 +32,9 @@ interface DeviceNotice {
 }
 
 const VERIFY_MESSAGES: Record<string, string> = {
-  nim_not_found: "NIM tidak ditemukan dalam data pemilih. Silakan periksa kembali.",
+  nim_not_found:
+    "Tidak ada pemilih dengan tiga digit terakhir NIM tersebut. Periksa kembali.",
+  invalid_nim_suffix: "Masukkan tepat tiga angka terakhir NIM.",
   not_eligible: "NIM ini tidak memenuhi syarat untuk memilih.",
   already_voted: "NIM ini tercatat sudah memilih.",
   election_not_open: "Pemilihan sedang tidak dibuka.",
@@ -51,6 +56,7 @@ export default function DevicePage() {
   );
   const [stage, setStage] = useState<DeviceStage>("idle");
   const [verifiedVoter, setVerifiedVoter] = useState<VerifiedVoter | null>(null);
+  const [voterMatches, setVoterMatches] = useState<VerifiedVoter[]>([]);
   const [candidates, setCandidates] = useState<DeviceCandidate[]>([]);
   const [notice, setNotice] = useState<DeviceNotice | null>(null);
   const [connection, setConnection] = useState("Menghubungkan…");
@@ -111,6 +117,7 @@ export default function DevicePage() {
       if (remaining <= 0) {
         window.clearInterval(timer);
         setVerifiedVoter(null);
+        setVoterMatches([]);
         setCandidates([]);
         setPendingCandidate(null);
         setNotice(null);
@@ -125,6 +132,7 @@ export default function DevicePage() {
     const result = await pollVotingDevice(nextToken);
     localStorage.setItem(DEVICE_TOKEN_KEY, nextToken);
     setToken(nextToken);
+    setVoterMatches([]);
     setConnection("Perangkat terdaftar");
     setNotice(null);
     setStage(
@@ -138,8 +146,13 @@ export default function DevicePage() {
 
   async function handleVerify(nim: string) {
     setNotice(null);
+    setVoterMatches([]);
     try {
       const result = await verifyVoterForDevice(token, nim);
+      if (result.code === "nim_ambiguous" && result.voters?.length) {
+        setVoterMatches(result.voters);
+        return;
+      }
       if (!result.ok || !result.voter) {
         throw new Error(
           VERIFY_MESSAGES[result.code ?? ""] ??
@@ -152,6 +165,16 @@ export default function DevicePage() {
     } catch (error) {
       setNotice({ kind: "error", message: getErrorMessage(error) });
     }
+  }
+
+  function handleSelectVoter(voter: VerifiedVoter) {
+    setVoterMatches([]);
+    setVerifiedVoter(voter);
+    setStage("verified");
+  }
+
+  function clearVoterMatches() {
+    setVoterMatches([]);
   }
 
   async function handleContinue() {
@@ -199,6 +222,7 @@ export default function DevicePage() {
     setToken("");
     setStage("idle");
     setVerifiedVoter(null);
+    setVoterMatches([]);
     setCandidates([]);
     setPendingCandidate(null);
     setVoteBusy(false);
@@ -208,11 +232,21 @@ export default function DevicePage() {
   }
 
   function renderStage() {
+    const renderEntry = (entryStage: DeviceIdleStage) => (
+      <DeviceStageMessage
+        stage={entryStage}
+        onVerify={handleVerify}
+        voterMatches={voterMatches}
+        onSelectVoter={handleSelectVoter}
+        onClearVoterMatches={clearVoterMatches}
+      />
+    );
+
     if (stage === "verified") {
       return verifiedVoter ? (
         <VoterBiodata voter={verifiedVoter} onContinue={handleContinue} />
       ) : (
-        <DeviceStageMessage stage="idle" onVerify={handleVerify} />
+        renderEntry("idle")
       );
     }
     if (stage === "voting") {
@@ -223,7 +257,7 @@ export default function DevicePage() {
           onSelect={handleSelectCandidate}
         />
       ) : (
-        <DeviceStageMessage stage="idle" onVerify={handleVerify} />
+        renderEntry("idle")
       );
     }
     if (stage === "thanks") {
@@ -235,9 +269,9 @@ export default function DevicePage() {
       );
     }
     if (stage === "empty") {
-      return <DeviceStageMessage stage="empty" onVerify={handleVerify} />;
+      return renderEntry("empty");
     }
-    return <DeviceStageMessage stage={stage} onVerify={handleVerify} />;
+    return renderEntry(stage);
   }
 
   if (!token) {
@@ -260,7 +294,8 @@ export default function DevicePage() {
           <p className="section-marker">Pemilihan Ketua Angkatan 2026</p>
           <h1>Suara Anda, masa depan angkatan.</h1>
           <p className="muted">
-            Ikuti antrean perangkat dan verifikasi NIM Anda sebelum memilih.
+            Ikuti antrean perangkat dan verifikasi pemilih dengan tiga digit
+            terakhir NIM sebelum memilih.
           </p>
         </div>
 

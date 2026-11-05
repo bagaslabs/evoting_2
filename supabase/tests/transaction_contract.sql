@@ -102,6 +102,17 @@ begin
     raise exception 'Voting must not be restricted to the device queue assignment';
   end if;
 
+  if position(
+       'right(v.nim, 3)' in
+       lower(pg_get_functiondef('public.verify_voter_for_device(text,text)'::regprocedure))
+     ) = 0
+     or position(
+       'nim_ambiguous' in
+       lower(pg_get_functiondef('public.verify_voter_for_device(text,text)'::regprocedure))
+     ) = 0 then
+    raise exception 'Device voter verification must use the final three NIM digits and return matches for ambiguous suffixes';
+  end if;
+
   if has_function_privilege('anon', 'public.create_election_round(text,uuid[])', 'execute')
      or has_function_privilege('anon', 'public.select_election_round(uuid)', 'execute')
      or has_function_privilege('anon', 'public.delete_election_round(uuid)', 'execute') then

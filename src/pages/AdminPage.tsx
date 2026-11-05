@@ -483,10 +483,13 @@ export default function AdminPage() {
           round.id === data?.election.active_round_id
             ? "Babak ini sedang aktif. Babak lain yang tersisa akan otomatis diaktifkan, atau tidak ada babak aktif jika ini satu-satunya babak. "
             : ""
-        }Semua suara dan hasil babak ini, konfigurasi kandidat, serta catatan partisipasinya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan. Pemilihan harus ditutup terlebih dahulu.`,
+        }Semua suara dan hasil babak ini, konfigurasi kandidat, serta catatan partisipasinya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan. Pemilihan harus ditutup terlebih dahulu. Ketik HAPUS untuk melanjutkan.`,
         confirmLabel: "Hapus babak",
         tone: "danger",
-        mode: "confirm",
+        mode: "prompt",
+        inputLabel: 'Ketik "HAPUS" untuk mengonfirmasi',
+        inputPlaceholder: "HAPUS",
+        confirmationText: "HAPUS",
       },
       action: async () => {
         await deleteElectionRound(round.id);

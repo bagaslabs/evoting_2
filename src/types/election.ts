@@ -170,6 +170,7 @@ export interface VerifyVoterResult {
   ok: boolean;
   code?: string;
   voter?: VerifiedVoter;
+  voters?: VerifiedVoter[];
 }
 
 export interface DeviceCandidate {

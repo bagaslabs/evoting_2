@@ -1388,6 +1388,25 @@ code {
   min-width: 120px;
 }
 
+.voter-match-list {
+  display: grid;
+  gap: 8px;
+  width: min(420px, 100%);
+  margin: 20px auto 0;
+  text-align: left;
+}
+
+.voter-match-list p {
+  margin-bottom: 4px;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.voter-match-list .btn {
+  justify-content: flex-start;
+  text-align: left;
+}
+
 .voter-biodata h2 {
   margin-bottom: 6px;
   font-size: 1.72rem;

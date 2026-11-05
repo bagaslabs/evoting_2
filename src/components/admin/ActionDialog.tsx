@@ -15,6 +15,7 @@ export interface ActionDialogConfig {
   tone?: "primary" | "danger";
   inputLabel?: string;
   inputPlaceholder?: string;
+  confirmationText?: string;
 }
 
 interface ActionDialogProps {
@@ -37,6 +38,13 @@ export function ActionDialog({ config, onCancel, onSubmit }: ActionDialogProps) 
     event.preventDefault();
     if (config.mode === "prompt" && !value.trim()) {
       setError("Isian ini wajib diisi.");
+      return;
+    }
+    if (
+      config.confirmationText &&
+      value.trim() !== config.confirmationText
+    ) {
+      setError(`Ketik "${config.confirmationText}" untuk mengonfirmasi.`);
       return;
     }
 
