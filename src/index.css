@@ -1669,6 +1669,21 @@ code {
   font-size: 1.5rem;
 }
 
+.results-total .results-participation-value {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+.results-participation-value small {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
 .results-list {
   display: grid;
   gap: 20px;
@@ -1681,14 +1696,56 @@ code {
 
 .result-label {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 9px;
+}
+
+.result-candidate {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-avatar {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.result-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.result-label .result-avatar-fallback {
+  color: var(--primary-strong);
+  font-size: 0.82rem;
 }
 
 .result-label span {
   color: var(--muted);
   font-size: 0.86rem;
+}
+
+.result-label > span {
+  text-align: right;
 }
 
 .progress-track {

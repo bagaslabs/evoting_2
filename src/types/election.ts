@@ -191,6 +191,7 @@ export interface PublicResultCandidate {
   name: string;
   votes: number;
   percentage: number;
+  image_url?: string;
 }
 
 export interface PublicResultsPublished {
@@ -199,6 +200,8 @@ export interface PublicResultsPublished {
   total_votes: number;
   candidates: PublicResultCandidate[];
   participation_percentage?: number;
+  participation_voted?: number;
+  participation_eligible?: number;
 }
 
 export interface PublicResultsUnpublished {

@@ -1,4 +1,5 @@
 import type { PublicResults } from "../../types/election";
+import { safeImageUrl } from "../../utils/format";
 import { ProgressBar } from "../ui/ProgressBar";
 
 export function ResultsContent({ results }: { results: PublicResults }) {
@@ -24,7 +25,20 @@ export function ResultsContent({ results }: { results: PublicResults }) {
       {"participation_percentage" in results && (
         <div className="results-total">
           <span>Partisipasi</span>
-          <strong>{results.participation_percentage}%</strong>
+          <strong className="results-participation-value">
+            {results.participation_voted !== undefined &&
+            results.participation_eligible !== undefined ? (
+              <>
+                <span>
+                  {results.participation_voted.toLocaleString("id-ID")} dari{" "}
+                  {results.participation_eligible.toLocaleString("id-ID")} pemilih
+                </span>
+                <small>{results.participation_percentage}%</small>
+              </>
+            ) : (
+              `${results.participation_percentage}%`
+            )}
+          </strong>
         </div>
       )}
 
@@ -32,20 +46,49 @@ export function ResultsContent({ results }: { results: PublicResults }) {
         {results.candidates.length === 0 && (
           <p className="muted">Belum ada hasil untuk ditampilkan.</p>
         )}
-        {results.candidates.map((candidate) => (
-          <article className="result-row" key={candidate.name}>
-            <div className="result-label">
-              <strong>{candidate.name}</strong>
-              <span>
-                {candidate.votes} suara · {candidate.percentage}%
-              </span>
-            </div>
-            <ProgressBar
-              percentage={candidate.percentage}
-              label={candidate.name}
-            />
-          </article>
-        ))}
+        {results.candidates.map((candidate) => {
+          const imageUrl = safeImageUrl(candidate.image_url);
+          const initials = candidate.name
+            .trim()
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((part) => part[0] ?? "")
+            .join("")
+            .toLocaleUpperCase();
+
+          return (
+            <article className="result-row" key={candidate.name}>
+              <div className="result-label">
+                <div className="result-candidate">
+                  <div className="result-avatar">
+                    <span className="result-avatar-fallback" aria-hidden="true">
+                      {initials}
+                    </span>
+                    {imageUrl && (
+                      <img
+                        src={imageUrl}
+                        alt={`Foto ${candidate.name}`}
+                        loading="lazy"
+                        decoding="async"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    )}
+                  </div>
+                  <strong>{candidate.name}</strong>
+                </div>
+                <span>
+                  {candidate.votes} suara · {candidate.percentage}%
+                </span>
+              </div>
+              <ProgressBar
+                percentage={candidate.percentage}
+                label={candidate.name}
+              />
+            </article>
+          );
+        })}
       </div>
     </div>
   );
