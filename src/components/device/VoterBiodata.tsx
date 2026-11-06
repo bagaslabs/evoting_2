@@ -6,9 +6,10 @@ import { Button } from "../ui/Button";
 interface VoterBiodataProps {
   voter: VerifiedVoter;
   onContinue: () => Promise<void>;
+  onBack: () => void;
 }
 
-export function VoterBiodata({ voter, onContinue }: VoterBiodataProps) {
+export function VoterBiodata({ voter, onContinue, onBack }: VoterBiodataProps) {
   const [busy, setBusy] = useState(false);
 
   async function handleContinue() {
@@ -44,6 +45,9 @@ export function VoterBiodata({ voter, onContinue }: VoterBiodataProps) {
       </dl>
       <Button onClick={handleContinue} disabled={busy}>
         {busy ? "Memuat kandidat…" : "Lanjut ke halaman voting"}
+      </Button>
+      <Button variant="ghost" onClick={onBack} disabled={busy}>
+        Salah biodata? Kembali
       </Button>
     </div>
   );

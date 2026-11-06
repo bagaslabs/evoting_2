@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Brand } from "../components/Brand";
 import { DeviceHeader } from "../components/device/DeviceHeader";
 import { DeviceSetupForm } from "../components/device/DeviceSetupForm";
@@ -105,6 +105,15 @@ export default function DevicePage() {
     setNotice(null);
   }, [stage]);
 
+  const returnToQueue = useCallback(() => {
+    setVerifiedVoter(null);
+    setVoterMatches([]);
+    setCandidates([]);
+    setPendingCandidate(null);
+    setNotice(null);
+    setStage("idle");
+  }, []);
+
   useEffect(() => {
     if (stage !== "thanks") return;
 
@@ -116,17 +125,12 @@ export default function DevicePage() {
 
       if (remaining <= 0) {
         window.clearInterval(timer);
-        setVerifiedVoter(null);
-        setVoterMatches([]);
-        setCandidates([]);
-        setPendingCandidate(null);
-        setNotice(null);
-        setStage("idle");
+        returnToQueue();
       }
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [stage]);
+  }, [stage, returnToQueue]);
 
   async function handleConnect(nextToken: string) {
     const result = await pollVotingDevice(nextToken);
@@ -244,7 +248,11 @@ export default function DevicePage() {
 
     if (stage === "verified") {
       return verifiedVoter ? (
-        <VoterBiodata voter={verifiedVoter} onContinue={handleContinue} />
+        <VoterBiodata
+          voter={verifiedVoter}
+          onContinue={handleContinue}
+          onBack={returnToQueue}
+        />
       ) : (
         renderEntry("idle")
       );
@@ -265,6 +273,7 @@ export default function DevicePage() {
         <ThankYouStage
           voterName={verifiedVoter?.nama ?? ""}
           countdown={countdown}
+          onBack={returnToQueue}
         />
       );
     }
@@ -304,12 +313,6 @@ export default function DevicePage() {
           <Notice kind={notice?.kind}>{notice?.message}</Notice>
         </div>
       </section>
-
-      <footer className="site-footer">
-        <button type="button" className="text-button" onClick={handleDisconnect}>
-          Ganti token perangkat
-        </button>
-      </footer>
 
       <ConfirmDialog
         open={pendingCandidate !== null}

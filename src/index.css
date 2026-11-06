@@ -3,7 +3,10 @@
 :root {
   font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
   color: #292d32;
-  background: #f8f7f3;
+  background:
+    linear-gradient(180deg, rgba(8, 28, 64, 0.08), rgba(8, 28, 64, 0.38)),
+    linear-gradient(135deg, rgba(12, 48, 110, 0.40), rgba(40, 100, 180, 0.15) 55%, rgba(185, 221, 242, 0.10)),
+    url("/elektro.jpg") center top / cover no-repeat fixed;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -39,6 +42,7 @@
 
 html {
   scroll-behavior: smooth;
+  min-height: 100%;
 }
 
 body {
@@ -47,10 +51,7 @@ body {
   min-height: 100vh;
   font-family: var(--font-body);
   color: var(--ink);
-      background:
-    linear-gradient(180deg, rgba(8, 28, 64, 0.08), rgba(8, 28, 64, 0.38)),
-    linear-gradient(135deg, rgba(12, 48, 110, 0.40), rgba(40, 100, 180, 0.15) 55%, rgba(185, 221, 242, 0.10)),
-    url("/elektro.jpg") center / cover no-repeat fixed;
+  background: transparent;
 }
 
 button,
@@ -503,6 +504,13 @@ code {
   font-size: clamp(2.6rem, 8vw, 4.2rem);
   line-height: 1;
   letter-spacing: -0.05em;
+}
+
+.public-queue-voter-name {
+  color: var(--ink-soft);
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .public-queue-empty {
@@ -2148,21 +2156,6 @@ code {
   gap: 12px;
 }
 
-.brand-logos {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: inherit;
-  font-weight: inherit;
-}
-
-.brand-logo {
-  display: block;
-  height: 44px;
-  width: auto;
-  object-fit: contain;
-}
-
 .brand .brand-text {
   display: inline-flex;
   gap: 0.3rem;
@@ -2175,10 +2168,6 @@ code {
 }
 
 @media (max-width: 640px) {
-  .brand-logo {
-    height: 32px;
-  }
-
   .brand-text {
     font-size: 1.05rem;
   }

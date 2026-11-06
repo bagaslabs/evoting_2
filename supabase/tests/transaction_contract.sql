@@ -79,9 +79,9 @@ begin
        '''nim''' in pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
      ) > 0
      or position(
-       '''nama''' in pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
-     ) > 0 then
-    raise exception 'Public queue endpoint must not return voter names or full NIMs';
+       '''voter_name''' in pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
+     ) = 0 then
+    raise exception 'Public queue endpoint must return voter names but not full NIMs';
   end if;
 
   if position(
@@ -89,6 +89,13 @@ begin
        lower(pg_get_functiondef('public.get_public_current_queue()'::regprocedure))
      ) = 0 then
     raise exception 'Public queue endpoint must return only the final three NIM digits';
+  end if;
+
+  if position(
+       '[1:2]' in
+       pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
+     ) = 0 then
+    raise exception 'Public queue endpoint must return at most two words of the voter name';
   end if;
 
   if position(

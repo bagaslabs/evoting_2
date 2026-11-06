@@ -125,6 +125,7 @@ export interface AdminQueueVoter {
 export interface PublicQueueEntry {
   device_name: string;
   voter_suffix: string;
+  voter_name: string;
 }
 
 export interface DeviceToken {

@@ -1,9 +1,16 @@
+import { Button } from "../ui/Button";
+
 interface ThankYouStageProps {
   voterName: string;
   countdown: number;
+  onBack: () => void;
 }
 
-export function ThankYouStage({ voterName, countdown }: ThankYouStageProps) {
+export function ThankYouStage({
+  voterName,
+  countdown,
+  onBack,
+}: ThankYouStageProps) {
   return (
     <div className="thankyou">
       <div className="thankyou-icon" aria-hidden="true">
@@ -17,6 +24,9 @@ export function ThankYouStage({ voterName, countdown }: ThankYouStageProps) {
           ? `Kembali ke antrean dalam ${countdown} detik…`
           : "Memuat antrean berikutnya…"}
       </p>
+      <Button variant="secondary" onClick={onBack}>
+        Kembali ke antrean
+      </Button>
     </div>
   );
 }
