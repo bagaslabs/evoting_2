@@ -404,6 +404,16 @@ code {
   gap: 10px;
 }
 
+.queue-global-panel {
+  margin-top: 20px;
+}
+
+.queue-global-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+
 .queue-ticket {
   display: grid;
   flex: 1 1 calc(50% - 5px);

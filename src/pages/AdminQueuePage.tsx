@@ -109,7 +109,8 @@ export default function AdminQueuePage() {
           <p className="section-marker">Pemantauan perangkat</p>
           <h1>Papan antrean</h1>
           <p className="muted">
-            Antrean eligible dibagi bergiliran ke setiap perangkat aktif.
+            Semua pemilih menunggu dalam satu antrean. Bilik yang siap mengambil
+            nomor teratas berikutnya.
           </p>
         </div>
         <span className="muted small">Diperbarui otomatis tiap 5 detik</span>
@@ -138,41 +139,31 @@ function QueueBoard({
   voters: AdminQueueVoter[];
 }) {
   const activeDevices = devices.filter((device) => device.active);
-  const laneIds = new Set(activeDevices.map((device) => device.id));
   const queuedVoters = voters.filter(
     (voter) =>
       voter.eligible &&
       !voter.has_voted &&
       (voter.queue_state === "waiting" || voter.queue_state === "assigned"),
   );
-  const laneVoters = new Map<string, AdminQueueVoter[]>(
-    activeDevices.map((device) => [device.id, []]),
+  const waitingVoters = queuedVoters
+    .filter((voter) => voter.queue_state === "waiting")
+    .sort((a, b) => a.queue_position - b.queue_position);
+  const calledByDevice = new Map(
+    queuedVoters
+      .filter(
+        (voter) =>
+          voter.queue_state === "assigned" && voter.queue_device_id !== null,
+      )
+      .map((voter) => [voter.queue_device_id, voter]),
   );
-
-  for (const voter of queuedVoters) {
-    if (!voter.queue_device_id || !laneIds.has(voter.queue_device_id)) continue;
-    laneVoters.get(voter.queue_device_id)?.push(voter);
-  }
-  for (const lane of laneVoters.values()) {
-    lane.sort((a, b) => a.queue_position - b.queue_position);
-  }
-
-  const unassignedCount = queuedVoters.filter(
-    (voter) => !voter.queue_device_id || !laneIds.has(voter.queue_device_id),
-  ).length;
 
   return (
     <>
-      <Notice kind="warning">
-        {unassignedCount > 0
-          ? `${unassignedCount} peserta menunggu karena belum ada perangkat aktif.`
-          : null}
-      </Notice>
       {activeDevices.length === 0 ? (
         <Panel title="Belum ada perangkat aktif">
           <p className="muted">
-            Aktifkan perangkat di dashboard agar antrean dapat dibagi ke
-            jalur-jalur perangkat.
+            Aktifkan perangkat di dashboard agar pemilih dapat dipanggil dari
+            antrean bersama.
           </p>
         </Panel>
       ) : (
@@ -181,21 +172,36 @@ function QueueBoard({
             <QueueLane
               key={device.id}
               device={device}
-              voters={laneVoters.get(device.id) ?? []}
+              voter={calledByDevice.get(device.id)}
             />
           ))}
         </div>
       )}
+      <Panel
+        className="queue-global-panel"
+        title="Antrean global"
+        description={`${waitingVoters.length} pemilih menunggu`}
+      >
+        {waitingVoters.length === 0 ? (
+          <p className="muted small">Tidak ada pemilih yang menunggu.</p>
+        ) : (
+          <div className="queue-global-list">
+            {waitingVoters.map((voter) => (
+              <QueueTicket key={voter.nim} voter={voter} />
+            ))}
+          </div>
+        )}
+      </Panel>
     </>
   );
 }
 
 function QueueLane({
   device,
-  voters,
+  voter,
 }: {
   device: AdminQueueDevice;
-  voters: AdminQueueVoter[];
+  voter: AdminQueueVoter | undefined;
 }) {
   return (
     <Panel
@@ -204,32 +210,36 @@ function QueueLane({
       description={device.connected ? "Perangkat terhubung" : "Perangkat offline"}
       aside={
         <span className={`pill ${device.connected ? "pill-active" : "pill-inactive"}`}>
-          {voters.length} antrean
+          {voter ? "Sedang melayani" : "Siap memanggil"}
         </span>
       }
     >
-      {voters.length === 0 ? (
-        <p className="muted small">Tidak ada peserta di jalur ini.</p>
+      {voter ? (
+        <QueueTicket voter={voter} called />
       ) : (
-        <div className="queue-lane-tickets">
-          {voters.map((voter) => {
-            const isCalled = voter.queue_state === "assigned";
-            return (
-              <article
-                className={`queue-ticket${isCalled ? " queue-ticket-called" : ""}`}
-                key={voter.nim}
-              >
-                <strong className="queue-ticket-number">
-                  No. {voter.queue_position}
-                </strong>
-                <span className="queue-ticket-name">{voter.nama}</span>
-                <code>{voter.nim}</code>
-                {isCalled && <span className="queue-ticket-status">Sedang dilayani</span>}
-              </article>
-            );
-          })}
-        </div>
+        <p className="muted small">Belum ada nomor yang dipanggil.</p>
       )}
     </Panel>
+  );
+}
+
+function QueueTicket({
+  voter,
+  called = false,
+}: {
+  voter: AdminQueueVoter;
+  called?: boolean;
+}) {
+  return (
+    <article className={`queue-ticket${called ? " queue-ticket-called" : ""}`}>
+      <strong className="queue-ticket-number">No. {voter.queue_position}</strong>
+      <span className="queue-ticket-name">{voter.nama}</span>
+      <code>{voter.nim}</code>
+      {called && (
+        <span className="queue-ticket-status">
+          Sedang dilayani{voter.device_name ? ` · ${voter.device_name}` : ""}
+        </span>
+      )}
+    </article>
   );
 }

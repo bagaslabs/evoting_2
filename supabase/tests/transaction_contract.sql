@@ -226,6 +226,13 @@ begin
     raise exception 'An empty device must assign the next globally ordered waiting voter';
   end if;
 
+  if position(
+       'set queue_device_id = v_device_ids'
+       in lower(pg_get_functiondef('public.rebalance_waiting_queue_lanes(boolean)'::regprocedure))
+     ) > 0 then
+    raise exception 'Waiting voters must not be preassigned to device-specific lanes';
+  end if;
+
   if has_function_privilege('anon', 'public.set_voter_eligibility(text,boolean)', 'execute')
      or not has_function_privilege('authenticated', 'public.set_voter_eligibility(text,boolean)', 'execute') then
     raise exception 'Only authenticated admins may change voter eligibility';
@@ -275,6 +282,13 @@ begin
      or not has_function_privilege('anon', 'public.get_candidates_for_device(text,uuid,text)', 'execute')
      or not has_function_privilege('anon', 'public.cast_vote(text,uuid,text,uuid)', 'execute') then
     raise exception 'Client-bound device RPCs must be reachable by their token-authenticated client';
+  end if;
+
+  if position(
+       'assign_next_to_device(v_device_id)'
+       in lower(pg_get_functiondef('public.cast_vote(text,uuid,text,uuid)'::regprocedure))
+     ) = 0 then
+    raise exception 'Casting a vote must assign the next queue voter before returning';
   end if;
 end;
 $$;

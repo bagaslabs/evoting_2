@@ -121,6 +121,7 @@ export interface AdminQueueVoter {
   queue_state: QueueState;
   queue_position: number;
   queue_device_id: string | null;
+  device_name: string | null;
 }
 
 export interface PublicQueueEntry {
