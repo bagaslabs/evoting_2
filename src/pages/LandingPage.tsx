@@ -7,6 +7,7 @@ export default function LandingPage() {
   return (
     <main className="page landing">
       <SiteHeader
+        suffix="Ketua Angkatan"
         nav={[
           { label: "Antrean saat ini", to: "/antrian" },
           { label: "Hasil pemilihan", to: "/results" },

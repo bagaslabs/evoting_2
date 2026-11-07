@@ -1,10 +1,10 @@
 import { Link } from "react-router";
 
-export function Brand({ suffix = "Teknik Elektro" }: { suffix?: string }) {
+export function Brand({ suffix = "Ketua Angkatan" }: { suffix?: string }) {
   return (
     <Link to="/" className="brand">
       <span className="brand-text">
-        E-Voting <span>{suffix}</span>
+        Evoting <span>{suffix}</span>
       </span>
     </Link>
   );
