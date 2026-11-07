@@ -15,15 +15,19 @@ export function ResultsContent({ results }: { results: PublicResults }) {
     );
   }
 
+  const sortedCandidates = [...results.candidates].sort(
+    (first, second) => second.votes - first.votes,
+  );
+
   return (
     <div className="results-layout">
       <div className="results-main">
         <h1>{results.title}</h1>
         <div className="results-list">
-          {results.candidates.length === 0 && (
+          {sortedCandidates.length === 0 && (
             <p className="muted">Belum ada hasil untuk ditampilkan.</p>
           )}
-          {results.candidates.map((candidate) => {
+          {sortedCandidates.map((candidate) => {
             const imageUrl = safeImageUrl(candidate.image_url);
             const initials = candidate.name
               .trim()
