@@ -216,10 +216,14 @@ begin
   end if;
 
   if position(
-       'queue_device_id = p_device_id'
-       in pg_get_functiondef('public.assign_next_to_device(uuid)'::regprocedure)
+       'v.queue_device_id = p_device_id'
+       in lower(pg_get_functiondef('public.assign_next_to_device(uuid)'::regprocedure))
+     ) > 0
+     or position(
+       'order by v.queue_position'
+       in lower(pg_get_functiondef('public.assign_next_to_device(uuid)'::regprocedure))
      ) = 0 then
-    raise exception 'A device may only assign voters from its own queue lane';
+    raise exception 'An empty device must assign the next globally ordered waiting voter';
   end if;
 
   if has_function_privilege('anon', 'public.set_voter_eligibility(text,boolean)', 'execute')
