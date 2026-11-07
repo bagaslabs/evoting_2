@@ -1696,15 +1696,34 @@ code {
   background: transparent;
 }
 
-.results-shell:fullscreen,
-.public-queue-shell:fullscreen {
-  width: min(1180px, calc(100% - 48px));
+.results-shell:fullscreen > .site-header,
+.results-shell:fullscreen > .results-panel,
+.results-shell:fullscreen > .site-footer,
+.public-queue-shell:fullscreen > .site-header,
+.public-queue-shell:fullscreen > .public-queue-toolbar,
+.public-queue-shell:fullscreen > .public-queue-heading,
+.public-queue-shell:fullscreen > .public-queue-list,
+.public-queue-shell:fullscreen > .public-queue-empty,
+.public-queue-shell:fullscreen > .public-queue-refresh-note,
+.public-queue-shell:fullscreen > .site-footer {
+  width: min(1180px, calc(100vw - 48px));
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.results-shell:fullscreen {
   padding: 18px 0 16px;
 }
 
 .device-layout:fullscreen {
-  width: min(1200px, calc(100% - 48px));
   padding: 18px 0 0;
+}
+
+.device-layout:fullscreen > .device-header,
+.device-layout:fullscreen > .device-card {
+  width: min(1200px, calc(100vw - 48px));
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .results-shell:fullscreen::backdrop,
@@ -1775,7 +1794,7 @@ code {
   padding: 26px 0;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .results-aside > .results-total:first-of-type {
@@ -1798,14 +1817,14 @@ code {
   display: grid;
   justify-items: start;
   gap: 8px;
-  font-size: clamp(1.2rem, 1.8vw, 1.55rem);
-  line-height: 1.3;
+  font-size: clamp(1.4rem, 2vw, 1.75rem);
+  line-height: 1.25;
 }
 
 .results-participation-value small {
   color: var(--muted);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 500;
 }
 
