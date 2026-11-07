@@ -522,6 +522,28 @@ code {
   letter-spacing: -0.05em;
 }
 
+.public-queue-number-blink {
+  display: inline-block;
+  animation: queue-number-blink 1s ease-in-out;
+}
+
+@keyframes queue-number-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  20%,
+  60% {
+    opacity: 0.25;
+  }
+
+  40%,
+  80% {
+    opacity: 1;
+  }
+}
+
 .public-queue-waiting {
   margin: 0;
   color: var(--muted);

@@ -12,15 +12,31 @@ import { getErrorMessage } from "../utils/errors";
 
 export default function PublicQueuePage() {
   const pageRef = useRef<HTMLElement>(null);
-  const [entries, setEntries] = useState<PublicQueueEntry[] | null>(null);
+  const [entries, setEntries] = useState<
+    (PublicQueueEntry & { numberChanged: boolean })[] | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const requestInFlight = useRef(false);
+  const previousNumbers = useRef(new Map<string, string | null>());
 
   const refresh = useCallback(async () => {
     if (requestInFlight.current) return;
     requestInFlight.current = true;
     try {
-      setEntries(await getPublicCurrentQueue());
+      const currentEntries = await getPublicCurrentQueue();
+      const displayEntries = currentEntries.map((entry) => ({
+        ...entry,
+        numberChanged:
+          previousNumbers.current.has(entry.device_name) &&
+          previousNumbers.current.get(entry.device_name) !== entry.voter_suffix,
+      }));
+      previousNumbers.current = new Map(
+        currentEntries.map(({ device_name, voter_suffix }) => [
+          device_name,
+          voter_suffix,
+        ]),
+      );
+      setEntries(displayEntries);
       setError(null);
     } catch (loadError) {
       setError(getErrorMessage(loadError));
@@ -93,7 +109,15 @@ export default function PublicQueuePage() {
               ) : (
                 <>
                   <strong className="public-queue-number">
-                    {entry.voter_suffix}
+                    <span
+                      className={
+                        entry.numberChanged
+                          ? "public-queue-number-blink"
+                          : undefined
+                      }
+                    >
+                      {entry.voter_suffix}
+                    </span>
                   </strong>
                   <span className="public-queue-voter-name">
                     {entry.voter_name}
