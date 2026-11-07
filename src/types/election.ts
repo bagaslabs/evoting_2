@@ -125,8 +125,9 @@ export interface AdminQueueVoter {
 
 export interface PublicQueueEntry {
   device_name: string;
-  voter_suffix: string;
-  voter_name: string;
+  voter_suffix: string | null;
+  voter_name: string | null;
+  waiting_for_voter: boolean;
 }
 
 export interface DeviceToken {

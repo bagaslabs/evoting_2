@@ -80,16 +80,26 @@ export default function PublicQueuePage() {
         </section>
       ) : (
         <section className="public-queue-list" aria-label="Antrean yang sedang dilayani">
-          {entries.map((entry) => (
+          {entries.map((entry, index) => (
             <article
               className="public-queue-card"
-              key={`${entry.device_name}-${entry.voter_suffix}`}
+              key={`${entry.device_name}-${index}`}
             >
               <h2>{entry.device_name}</h2>
-              <strong className="public-queue-number">
-                {entry.voter_suffix}
-              </strong>
-              <span className="public-queue-voter-name">{entry.voter_name}</span>
+              {entry.waiting_for_voter ? (
+                <p className="public-queue-waiting">
+                  Menunggu pemilih berikutnya
+                </p>
+              ) : (
+                <>
+                  <strong className="public-queue-number">
+                    {entry.voter_suffix}
+                  </strong>
+                  <span className="public-queue-voter-name">
+                    {entry.voter_name}
+                  </span>
+                </>
+              )}
             </article>
           ))}
         </section>

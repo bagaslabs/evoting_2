@@ -99,6 +99,17 @@ begin
   end if;
 
   if position(
+       '''waiting_for_voter''' in
+       pg_get_functiondef('public.get_public_current_queue()'::regprocedure)
+     ) = 0
+     or position(
+       'left join public.voting_devices' in
+       lower(pg_get_functiondef('public.get_public_current_queue()'::regprocedure))
+     ) = 0 then
+    raise exception 'Public queue must keep active device booths visible while no voter is assigned';
+  end if;
+
+  if position(
        'no_assignment' in
        lower(pg_get_functiondef('public.verify_voter_for_device(text,text)'::regprocedure))
      ) > 0
