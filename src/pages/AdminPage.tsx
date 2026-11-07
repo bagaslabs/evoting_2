@@ -29,6 +29,7 @@ import {
   createElectionRound,
   createVotingDevice,
   deleteAllVoters,
+  deleteCandidate,
   deleteElectionRound,
   deleteVotingDevice,
   deleteVoter,
@@ -624,6 +625,32 @@ export default function AdminPage() {
     }
   }
 
+  function openDeleteCandidate(candidate: Candidate) {
+    setDialog({
+      config: {
+        title: `Hapus kandidat ${candidate.name}?`,
+        description:
+          "Kandidat yang belum pernah masuk babak pemilihan dapat dihapus permanen. Kandidat yang sudah dipakai dalam babak atau memiliki suara harus dinonaktifkan agar hasil historis tetap utuh. Pemilihan harus ditutup.",
+        confirmLabel: "Hapus kandidat",
+        tone: "danger",
+        mode: "confirm",
+      },
+      action: async () => {
+        const warning = await deleteCandidate(candidate.id, candidate.image_url);
+        const refreshed = await refreshAfterAction();
+        setDialog(null);
+        if (refreshed) {
+          setNotice({
+            kind: warning ? "warning" : "success",
+            message: warning
+              ? `Kandidat ${candidate.name} berhasil dihapus.${warning}`
+              : `Kandidat ${candidate.name} berhasil dihapus.`,
+          });
+        }
+      },
+    });
+  }
+
   async function handleChangePassword(currentPassword: string, nextPassword: string) {
     await changeAdminPassword(currentPassword, nextPassword);
     if (await refreshAfterAction()) {
@@ -723,6 +750,7 @@ export default function AdminPage() {
         candidates={data.candidates}
         totalBallots={data.statistics.total_ballots}
         onSave={handleSaveCandidate}
+        onDelete={openDeleteCandidate}
       />
 
       <AuditPanel

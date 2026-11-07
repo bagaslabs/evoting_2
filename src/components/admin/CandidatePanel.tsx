@@ -6,17 +6,19 @@ interface CandidatePanelProps {
   candidates: Candidate[];
   totalBallots: number;
   onSave: (input: CandidateInput, existing: Candidate | null) => Promise<void>;
+  onDelete: (candidate: Candidate) => void;
 }
 
 export function CandidatePanel({
   candidates,
   totalBallots,
   onSave,
+  onDelete,
 }: CandidatePanelProps) {
   return (
     <Panel
       title="Kandidat"
-      description="Tambah, ubah, atau nonaktifkan kandidat. Kandidat tidak dihapus agar hasil agregat tetap utuh."
+      description="Tambah, ubah, atau nonaktifkan kandidat. Kandidat yang belum pernah dipakai dapat dihapus."
       aside={
         <span className="muted small">
           {candidates.length} kandidat · {totalBallots} suara tercatat
@@ -32,6 +34,7 @@ export function CandidatePanel({
             key={`${candidate.id}-${candidate.image_url}`}
             candidate={candidate}
             onSubmit={onSave}
+            onDelete={onDelete}
           />
         ))}
         <CandidateForm onSubmit={onSave} />

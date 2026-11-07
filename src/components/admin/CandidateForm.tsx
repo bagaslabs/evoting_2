@@ -14,9 +14,14 @@ import { Textarea } from "../ui/Textarea";
 interface CandidateFormProps {
   candidate?: Candidate;
   onSubmit: (input: CandidateInput, existing: Candidate | null) => Promise<void>;
+  onDelete?: (candidate: Candidate) => void;
 }
 
-export function CandidateForm({ candidate, onSubmit }: CandidateFormProps) {
+export function CandidateForm({
+  candidate,
+  onSubmit,
+  onDelete,
+}: CandidateFormProps) {
   const [name, setName] = useState(candidate?.name ?? "");
   const [vision, setVision] = useState(candidate?.vision ?? "");
   const [mission, setMission] = useState(candidate?.mission ?? "");
@@ -198,9 +203,21 @@ export function CandidateForm({ candidate, onSubmit }: CandidateFormProps) {
       </div>
 
       <Notice kind="error">{error}</Notice>
-      <Button type="submit" variant="secondary" disabled={busy}>
-        {busy ? "Menyimpan…" : candidate ? "Simpan perubahan" : "Tambah kandidat"}
-      </Button>
+      <div className="button-row">
+        <Button type="submit" variant="secondary" disabled={busy}>
+          {busy ? "Menyimpan…" : candidate ? "Simpan perubahan" : "Tambah kandidat"}
+        </Button>
+        {candidate && onDelete && (
+          <Button
+            type="button"
+            variant="danger"
+            size="sm"
+            onClick={() => onDelete(candidate)}
+          >
+            Hapus kandidat
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

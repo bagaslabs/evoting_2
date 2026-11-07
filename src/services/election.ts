@@ -283,6 +283,26 @@ export async function saveCandidate(
   }
 }
 
+export async function deleteCandidate(
+  candidateId: string,
+  imageUrl: string,
+): Promise<string> {
+  const client = getSupabase();
+  await rpc<void>("delete_candidate", { p_candidate_id: candidateId });
+
+  const imagePath = getCandidateStoragePath(imageUrl, supabaseUrl);
+  if (!imagePath) return "";
+
+  try {
+    const { error } = await client.storage
+      .from(CANDIDATE_PHOTOS_BUCKET)
+      .remove([imagePath]);
+    return error ? ` Foto kandidat belum terhapus: ${error.message}` : "";
+  } catch (error) {
+    return ` Foto kandidat belum terhapus: ${getErrorMessage(error)}`;
+  }
+}
+
 export function getPublicResults(roundNumber?: number) {
   return roundNumber === undefined
     ? rpc<PublicResults>("get_public_results")

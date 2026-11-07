@@ -1553,13 +1553,36 @@ code {
   background: var(--surface-soft);
 }
 
-.candidate-image,
-.candidate-placeholder {
+.candidate-photo {
+  position: relative;
   width: 100%;
-  height: auto;
   aspect-ratio: 4 / 5;
   background: #dfe6ec;
+}
+
+.candidate-image,
+.candidate-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #dfe6ec;
   object-fit: cover;
+}
+
+.candidate-number {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 28%);
 }
 
 .candidate-placeholder {

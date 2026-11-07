@@ -30,21 +30,24 @@ export function VotingBallot({
         {candidates.length === 0 && (
           <p className="muted">Belum ada kandidat aktif. Hubungi admin.</p>
         )}
-        {candidates.map((candidate) => {
+        {candidates.map((candidate, index) => {
           const image = safeImageUrl(candidate.image_url);
           return (
             <article className="candidate-card" key={candidate.id}>
-              {image ? (
-                <img
-                  className="candidate-image"
-                  src={image}
-                  alt={`Foto ${candidate.name}`}
-                />
-              ) : (
-                <div className="candidate-placeholder" aria-hidden="true">
-                  ?
-                </div>
-              )}
+              <div className="candidate-photo">
+                {image ? (
+                  <img
+                    className="candidate-image"
+                    src={image}
+                    alt={`Foto ${candidate.name}`}
+                  />
+                ) : (
+                  <div className="candidate-placeholder" aria-hidden="true">
+                    ?
+                  </div>
+                )}
+                <span className="candidate-number">{index + 1}</span>
+              </div>
               <div className="candidate-copy">
                 <h3>{candidate.name}</h3>
                 <strong>Visi</strong>
