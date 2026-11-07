@@ -10,14 +10,30 @@ import { getPublicCurrentQueue } from "../services/election";
 import type { PublicQueueEntry } from "../types/election";
 import { getErrorMessage } from "../utils/errors";
 
+function formatElapsedTime(assignedAt: string, now: number) {
+  const start = Date.parse(assignedAt);
+  if (!Number.isFinite(start)) return null;
+
+  const totalSeconds = Math.floor(Math.max(0, now - start) / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const formatPart = (value: number) => String(value).padStart(2, "0");
+
+  return hours > 0
+    ? `${formatPart(hours)}:${formatPart(minutes)}:${formatPart(seconds)}`
+    : `${formatPart(Math.floor(totalSeconds / 60))}:${formatPart(seconds)}`;
+}
+
 export default function PublicQueuePage() {
   const pageRef = useRef<HTMLElement>(null);
   const [entries, setEntries] = useState<
     (PublicQueueEntry & { numberChanged: boolean })[] | null
   >(null);
+  const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const requestInFlight = useRef(false);
-  const previousNumbers = useRef(new Map<string, string | null>());
+  const previousAssignments = useRef(new Map<string, string | null>());
 
   const refresh = useCallback(async () => {
     if (requestInFlight.current) return;
@@ -27,13 +43,14 @@ export default function PublicQueuePage() {
       const displayEntries = currentEntries.map((entry) => ({
         ...entry,
         numberChanged:
-          previousNumbers.current.has(entry.device_name) &&
-          previousNumbers.current.get(entry.device_name) !== entry.voter_suffix,
+          previousAssignments.current.has(entry.device_name) &&
+          previousAssignments.current.get(entry.device_name) !==
+            entry.assigned_at,
       }));
-      previousNumbers.current = new Map(
-        currentEntries.map(({ device_name, voter_suffix }) => [
+      previousAssignments.current = new Map(
+        currentEntries.map(({ device_name, assigned_at }) => [
           device_name,
-          voter_suffix,
+          assigned_at,
         ]),
       );
       setEntries(displayEntries);
@@ -53,6 +70,11 @@ export default function PublicQueuePage() {
     }, 2000);
     return () => window.clearInterval(timer);
   }, [error, refresh]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <main className="page public-queue-shell" ref={pageRef}>
@@ -98,7 +120,11 @@ export default function PublicQueuePage() {
         <section className="public-queue-list" aria-label="Antrean yang sedang dilayani">
           {entries.map((entry, index) => (
             <article
-              className="public-queue-card"
+              className={
+                entry.numberChanged
+                  ? "public-queue-card public-queue-card-blink"
+                  : "public-queue-card"
+              }
               key={`${entry.device_name}-${index}`}
             >
               <h2>{entry.device_name}</h2>
@@ -122,6 +148,12 @@ export default function PublicQueuePage() {
                   <span className="public-queue-voter-name">
                     {entry.voter_name}
                   </span>
+                  {entry.assigned_at && (
+                    <span className="public-queue-elapsed">
+                      Berjalan{" "}
+                      {formatElapsedTime(entry.assigned_at, now) ?? "--:--"}
+                    </span>
+                  )}
                 </>
               )}
             </article>

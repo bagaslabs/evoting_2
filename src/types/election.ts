@@ -129,6 +129,7 @@ export interface PublicQueueEntry {
   voter_suffix: string | null;
   voter_name: string | null;
   waiting_for_voter: boolean;
+  assigned_at: string | null;
 }
 
 export interface DeviceToken {

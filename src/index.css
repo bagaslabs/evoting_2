@@ -491,6 +491,7 @@ code {
 }
 
 .public-queue-card {
+  position: relative;
   display: grid;
   justify-items: center;
   gap: 10px;
@@ -501,6 +502,43 @@ code {
     radial-gradient(circle at 50% 0, rgba(40, 120, 199, 0.09), transparent 62%),
     var(--surface);
   text-align: center;
+}
+
+.public-queue-card::before {
+  position: absolute;
+  z-index: 0;
+  border-radius: inherit;
+  background: #fff;
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.public-queue-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.public-queue-card-blink::before {
+  animation: queue-card-blink 1s ease-in-out;
+}
+
+@keyframes queue-card-blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  20%,
+  60% {
+    opacity: 0.85;
+  }
+
+  40%,
+  80% {
+    opacity: 0;
+  }
 }
 
 .public-queue-label {
@@ -522,33 +560,17 @@ code {
   letter-spacing: -0.05em;
 }
 
-.public-queue-number-blink {
-  display: inline-block;
-  animation: queue-number-blink 1s ease-in-out;
-}
-
-@keyframes queue-number-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  20%,
-  60% {
-    opacity: 0.25;
-  }
-
-  40%,
-  80% {
-    opacity: 1;
-  }
-}
-
 .public-queue-waiting {
   margin: 0;
   color: var(--muted);
   font-size: clamp(1rem, 2.2vw, 1.2rem);
   font-weight: 600;
+}
+
+.public-queue-elapsed {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .public-queue-voter-name {
