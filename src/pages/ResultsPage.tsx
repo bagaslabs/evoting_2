@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { ResultsContent } from "../components/results/ResultsContent";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { Button } from "../components/ui/Button";
+import { FullscreenButton } from "../components/ui/FullscreenButton";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { Notice } from "../components/ui/Notice";
 import { getPublicResults } from "../services/election";
@@ -12,6 +13,7 @@ import { getErrorMessage } from "../utils/errors";
 
 export default function ResultsPage() {
   const { roundSlug } = useParams();
+  const pageRef = useRef<HTMLElement>(null);
   const [results, setResults] = useState<PublicResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,16 +41,24 @@ export default function ResultsPage() {
   }, [load]);
 
   return (
-    <main className="page results-shell">
+    <main className="page results-shell" ref={pageRef}>
       <SiteHeader suffix="Hasil publik" nav={[{ label: "Beranda", to: "/" }]} />
       <section className="panel results-panel">
         <div className="results-toolbar">
           <p className="section-marker">Hasil pemilihan</p>
-          <Button variant="secondary" size="sm" onClick={() => void load()} disabled={loading}>
-            {loading ? "Memuat…" : "Muat ulang"}
-          </Button>
+          <div className="results-toolbar-actions">
+            <FullscreenButton targetRef={pageRef} />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              {loading ? "Memuat…" : "Muat ulang"}
+            </Button>
+          </div>
         </div>
-
+        <Notice kind="error">{error}</Notice>
         <Notice kind="error">{error}</Notice>
         {loading && !results ? (
           <LoadingScreen message="Memuat informasi hasil…" />

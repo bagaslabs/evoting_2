@@ -447,6 +447,12 @@ code {
   padding-bottom: 48px;
 }
 
+.public-queue-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
 .public-queue-heading {
   max-width: 700px;
   margin: 0 auto 28px;
@@ -1675,6 +1681,47 @@ code {
   margin: 0;
 }
 
+.results-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.results-shell:fullscreen,
+.public-queue-shell:fullscreen,
+.device-layout:fullscreen {
+  width: 100%;
+  min-height: 100vh;
+  overflow: auto;
+  padding: 18px clamp(16px, 4vw, 64px);
+  background:
+    linear-gradient(180deg, rgba(8, 28, 64, 0.08), rgba(8, 28, 64, 0.38)),
+    linear-gradient(135deg, rgba(12, 48, 110, 0.40), rgba(40, 100, 180, 0.15) 55%, rgba(185, 221, 242, 0.10)),
+    url("/elektro.jpg") center top / cover no-repeat;
+}
+
+.fullscreen-control {
+  position: relative;
+  display: inline-flex;
+}
+
+.fullscreen-error {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(320px, 80vw);
+  padding: 10px 12px;
+  border: 1px solid #efc3bd;
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: #8f2b22;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  box-shadow: var(--shadow-soft);
+}
+
 .results-panel h1 {
   margin-bottom: 28px;
   font-size: clamp(2.2rem, 4vw, 3.35rem);
@@ -2081,6 +2128,10 @@ code {
     flex-direction: column;
   }
 
+  .results-toolbar-actions {
+    justify-content: flex-start;
+  }
+
   .results-panel h1 {
     margin-bottom: 22px;
   }
@@ -2248,6 +2299,22 @@ code {
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   box-shadow: 0 10px 30px rgba(8, 28, 64, 0.18);
+}
+
+@media (max-width: 640px) {
+  .device-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .device-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
 }
 
 .device-header .muted {

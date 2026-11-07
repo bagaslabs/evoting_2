@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Brand } from "../components/Brand";
 import { DeviceHeader } from "../components/device/DeviceHeader";
 import { DeviceSetupForm } from "../components/device/DeviceSetupForm";
@@ -51,6 +51,7 @@ const POLLABLE_STAGES: DeviceStage[] = [
 ];
 
 export default function DevicePage() {
+  const pageRef = useRef<HTMLElement>(null);
   const [token, setToken] = useState(
     () => localStorage.getItem(DEVICE_TOKEN_KEY) ?? "",
   );
@@ -295,8 +296,12 @@ export default function DevicePage() {
   }
 
   return (
-    <main className="device-layout">
-      <DeviceHeader connection={connection} onChangeToken={handleDisconnect} />
+    <main className="device-layout" ref={pageRef}>
+      <DeviceHeader
+        connection={connection}
+        onChangeToken={handleDisconnect}
+        fullscreenTarget={pageRef}
+      />
 
       <section className="device-card">
         <div className="device-copy">

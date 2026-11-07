@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { Button } from "../components/ui/Button";
+import { FullscreenButton } from "../components/ui/FullscreenButton";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { Notice } from "../components/ui/Notice";
 import { getPublicCurrentQueue } from "../services/election";
@@ -10,6 +11,7 @@ import type { PublicQueueEntry } from "../types/election";
 import { getErrorMessage } from "../utils/errors";
 
 export default function PublicQueuePage() {
+  const pageRef = useRef<HTMLElement>(null);
   const [entries, setEntries] = useState<PublicQueueEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requestInFlight = useRef(false);
@@ -37,7 +39,7 @@ export default function PublicQueuePage() {
   }, [error, refresh]);
 
   return (
-    <main className="page public-queue-shell">
+    <main className="page public-queue-shell" ref={pageRef}>
       <SiteHeader
         suffix="Antrean"
         nav={[
@@ -45,6 +47,9 @@ export default function PublicQueuePage() {
           { label: "Hasil pemilihan", to: "/results" },
         ]}
       />
+      <div className="public-queue-toolbar">
+        <FullscreenButton targetRef={pageRef} />
+      </div>
 
       <section className="public-queue-heading">
         <p className="section-marker">Informasi pemilihan</p>
