@@ -140,11 +140,16 @@ export default function PublicQueuePage() {
                   <span className="public-queue-voter-name">
                     {entry.voter_name}
                   </span>
-                  {entry.voter_started_at && (
-                    <span className="public-queue-status">
-                      Sedang memilih
-                    </span>
-                  )}
+                  <span
+                    className={
+                      entry.voter_started_at
+                        ? "public-queue-status"
+                        : "public-queue-status public-queue-status-hidden"
+                    }
+                    aria-hidden={!entry.voter_started_at}
+                  >
+                    Sedang memilih
+                  </span>
                   {entry.assigned_at && (
                     <span className="public-queue-elapsed">
                       Durasi{" "}

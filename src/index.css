@@ -590,6 +590,10 @@ code {
   font-weight: 700;
 }
 
+.public-queue-status-hidden {
+  visibility: hidden;
+}
+
 .public-queue-empty {
   display: grid;
   justify-items: center;
