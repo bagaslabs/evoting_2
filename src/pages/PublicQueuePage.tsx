@@ -34,7 +34,7 @@ export default function PublicQueuePage() {
     if (error) return;
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") void refresh();
-    }, 5000);
+    }, 2000);
     return () => window.clearInterval(timer);
   }, [error, refresh]);
 
@@ -96,7 +96,7 @@ export default function PublicQueuePage() {
       )}
 
       <p className="public-queue-refresh-note">
-        Diperbarui otomatis setiap 5 detik ·{" "}
+        Diperbarui otomatis setiap 2 detik ·{" "}
         <Link to="/admin">Dashboard admin</Link>
       </p>
       <SiteFooter>

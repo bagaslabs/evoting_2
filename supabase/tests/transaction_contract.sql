@@ -244,8 +244,65 @@ begin
     raise exception 'Authenticated users must not directly read decrypted Vault secrets';
   end if;
 
-  if not has_function_privilege('anon', 'public.cast_vote(text,text,uuid)', 'execute') then
-    raise exception 'Registered device voting RPC must be reachable by its token-authenticated client';
+  if has_function_privilege('anon', 'public.poll_voting_device(text)', 'execute')
+     or has_function_privilege('anon', 'public.verify_voter_for_device(text,text)', 'execute')
+     or has_function_privilege('anon', 'public.get_candidates_for_device(text,text)', 'execute')
+     or has_function_privilege('anon', 'public.cast_vote(text,text,uuid)', 'execute') then
+    raise exception 'Device RPCs without a client binding must not be callable anonymously';
   end if;
+
+  if has_function_privilege('anon', 'public.claim_voting_device(text,uuid)', 'execute') then
+    raise exception 'Anonymous users must not be able to claim device tokens directly';
+  end if;
+
+  if not has_function_privilege('anon', 'public.poll_voting_device(text,uuid)', 'execute')
+     or not has_function_privilege('anon', 'public.verify_voter_for_device(text,uuid,text)', 'execute')
+     or not has_function_privilege('anon', 'public.get_candidates_for_device(text,uuid,text)', 'execute')
+     or not has_function_privilege('anon', 'public.cast_vote(text,uuid,text,uuid)', 'execute') then
+    raise exception 'Client-bound device RPCs must be reachable by their token-authenticated client';
+  end if;
+end;
+$$;
+
+do $$
+declare
+  v_token text := encode(extensions.gen_random_bytes(32), 'hex');
+  v_device_id uuid;
+  v_client_id uuid := gen_random_uuid();
+  v_other_client_id uuid := gen_random_uuid();
+begin
+  insert into public.voting_devices(name, token_hash)
+  values ('device binding contract test', extensions.digest(v_token, 'sha256'))
+  returning id into v_device_id;
+
+  perform public.claim_voting_device(v_token, v_client_id);
+  perform public.claim_voting_device(v_token, v_client_id);
+
+  begin
+    perform public.claim_voting_device(v_token, v_other_client_id);
+    raise exception 'A token was claimed by more than one device';
+  exception when sqlstate '55000' then
+    null;
+  end;
+
+  if not exists (
+    select 1 from public.voting_devices
+    where id = v_device_id and device_client_id = v_client_id
+  ) then
+    raise exception 'The first client must retain its token binding';
+  end if;
+
+  update public.voting_devices
+  set token_hash = extensions.digest(v_token || 'rotated', 'sha256')
+  where id = v_device_id;
+
+  if exists (
+    select 1 from public.voting_devices
+    where id = v_device_id and device_client_id is not null
+  ) then
+    raise exception 'Rotating a token must clear its previous client binding';
+  end if;
+
+  delete from public.voting_devices where id = v_device_id;
 end;
 $$;

@@ -13,3 +13,12 @@ export function getErrorMessage(error: unknown) {
 
   return "Terjadi kesalahan. Silakan coba kembali.";
 }
+
+export function isDeviceBoundError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "55000"
+  );
+}

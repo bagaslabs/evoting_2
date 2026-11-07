@@ -23,8 +23,8 @@ import type {
   DeviceStage,
   VerifiedVoter,
 } from "../types/election";
-import { DEVICE_TOKEN_KEY } from "../utils/constants";
-import { getErrorMessage } from "../utils/errors";
+import { DEVICE_CLIENT_ID_KEY, DEVICE_TOKEN_KEY } from "../utils/constants";
+import { getErrorMessage, isDeviceBoundError } from "../utils/errors";
 
 interface DeviceNotice {
   kind: NoticeKind;
@@ -52,6 +52,14 @@ const POLLABLE_STAGES: DeviceStage[] = [
 
 export default function DevicePage() {
   const pageRef = useRef<HTMLElement>(null);
+  const [clientId] = useState(() => {
+    const storedClientId = localStorage.getItem(DEVICE_CLIENT_ID_KEY);
+    if (storedClientId) return storedClientId;
+
+    const newClientId = crypto.randomUUID();
+    localStorage.setItem(DEVICE_CLIENT_ID_KEY, newClientId);
+    return newClientId;
+  });
   const [token, setToken] = useState(
     () => localStorage.getItem(DEVICE_TOKEN_KEY) ?? "",
   );
@@ -61,7 +69,7 @@ export default function DevicePage() {
   const [candidates, setCandidates] = useState<DeviceCandidate[]>([]);
   const [notice, setNotice] = useState<DeviceNotice | null>(null);
   const [connection, setConnection] = useState("Menghubungkan…");
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(3);
   const [pendingCandidate, setPendingCandidate] = useState<DeviceCandidate | null>(
     null,
   );
@@ -75,10 +83,11 @@ export default function DevicePage() {
 
     const poll = async () => {
       try {
-        const result = await pollVotingDevice(token);
+        const result = await pollVotingDevice(token, clientId);
         if (cancelled) return;
 
         setConnection("Terhubung · antrean diperbarui");
+        setNotice(null);
         const next: DeviceStage =
           result.status === "empty"
             ? "empty"
@@ -86,9 +95,18 @@ export default function DevicePage() {
               ? "idle"
               : result.status;
         setStage((current) => (current === next ? current : next));
-      } catch {
+      } catch (loadError) {
         if (!cancelled) {
-          setConnection("Koneksi terputus · assignment tetap tersimpan");
+          if (isDeviceBoundError(loadError)) {
+            setConnection("Token terhubung ke perangkat lain");
+            setNotice({
+              kind: "error",
+              message:
+                "Token ini sudah terhubung ke perangkat lain. Hubungi admin untuk mengganti token.",
+            });
+          } else {
+            setConnection("Koneksi terputus · assignment tetap tersimpan");
+          }
         }
       }
     };
@@ -100,7 +118,7 @@ export default function DevicePage() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [token, stage]);
+  }, [clientId, token, stage]);
 
   useEffect(() => {
     setNotice(null);
@@ -118,8 +136,8 @@ export default function DevicePage() {
   useEffect(() => {
     if (stage !== "thanks") return;
 
-    setCountdown(5);
-    let remaining = 5;
+    setCountdown(3);
+    let remaining = 3;
     const timer = window.setInterval(() => {
       remaining -= 1;
       setCountdown(remaining);
@@ -134,7 +152,7 @@ export default function DevicePage() {
   }, [stage, returnToQueue]);
 
   async function handleConnect(nextToken: string) {
-    const result = await pollVotingDevice(nextToken);
+    const result = await pollVotingDevice(nextToken, clientId);
     localStorage.setItem(DEVICE_TOKEN_KEY, nextToken);
     setToken(nextToken);
     setVoterMatches([]);
@@ -153,7 +171,7 @@ export default function DevicePage() {
     setNotice(null);
     setVoterMatches([]);
     try {
-      const result = await verifyVoterForDevice(token, nim);
+      const result = await verifyVoterForDevice(token, clientId, nim);
       if (result.code === "nim_ambiguous" && result.voters?.length) {
         setVoterMatches(result.voters);
         return;
@@ -187,7 +205,9 @@ export default function DevicePage() {
     setNotice(null);
 
     try {
-      setCandidates(await getCandidatesForDevice(token, verifiedVoter.nim));
+      setCandidates(
+        await getCandidatesForDevice(token, clientId, verifiedVoter.nim),
+      );
       setStage("voting");
     } catch (error) {
       setNotice({ kind: "error", message: getErrorMessage(error) });
@@ -205,7 +225,12 @@ export default function DevicePage() {
     setVoteBusy(true);
     setVoteError(null);
     try {
-      const result = await castVote(token, verifiedVoter.nim, pendingCandidate.id);
+      const result = await castVote(
+        token,
+        clientId,
+        verifiedVoter.nim,
+        pendingCandidate.id,
+      );
       if (!result.ok) {
         throw new Error(
           "Pemilihan tidak dapat diselesaikan. Verifikasi sesi dan hubungi admin.",
@@ -213,7 +238,7 @@ export default function DevicePage() {
       }
 
       setPendingCandidate(null);
-      setCountdown(5);
+      setCountdown(3);
       setStage("thanks");
     } catch (error) {
       setVoteError(getErrorMessage(error));

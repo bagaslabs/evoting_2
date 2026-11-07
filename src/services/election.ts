@@ -335,27 +335,46 @@ export async function changeAdminPassword(currentPassword: string, nextPassword:
   await rpc<void>("admin_record_action", { p_action: "admin_password_changed" });
 }
 
-export function pollVotingDevice(token: string) {
-  return rpc<DevicePollResult>("poll_voting_device", { p_token: token });
+export function pollVotingDevice(token: string, clientId: string) {
+  return rpc<DevicePollResult>("poll_voting_device", {
+    p_token: token,
+    p_client_id: clientId,
+  });
 }
 
-export function verifyVoterForDevice(token: string, nim: string) {
+export function verifyVoterForDevice(
+  token: string,
+  clientId: string,
+  nim: string,
+) {
   return rpc<VerifyVoterResult>("verify_voter_for_device", {
     p_token: token,
+    p_client_id: clientId,
     p_nim: nim,
   });
 }
 
-export function getCandidatesForDevice(token: string, nim: string) {
+export function getCandidatesForDevice(
+  token: string,
+  clientId: string,
+  nim: string,
+) {
   return rpc<DeviceCandidate[]>("get_candidates_for_device", {
     p_token: token,
+    p_client_id: clientId,
     p_nim: nim,
   });
 }
 
-export function castVote(token: string, nim: string, candidateId: string) {
+export function castVote(
+  token: string,
+  clientId: string,
+  nim: string,
+  candidateId: string,
+) {
   return rpc<CastVoteResult>("cast_vote", {
     p_token: token,
+    p_client_id: clientId,
     p_nim: nim,
     p_candidate_id: candidateId,
   });
