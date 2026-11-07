@@ -21,6 +21,33 @@ export function ResultsContent({ results }: { results: PublicResults }) {
 
   return (
     <div className="results-layout">
+      <aside className="results-aside" aria-label="Analisis statistik">
+        <h1 className="results-summary-title">Voting Results</h1>
+        <div className="results-total">
+          <span>Total suara</span>
+          <strong>{results.total_votes.toLocaleString("id-ID")}</strong>
+        </div>
+        {"participation_percentage" in results && (
+          <div className="results-total">
+            <span>Partisipasi</span>
+            <strong className="results-participation-value">
+              {results.participation_voted !== undefined &&
+              results.participation_eligible !== undefined ? (
+                <>
+                  <span>
+                    {results.participation_voted.toLocaleString("id-ID")} dari{" "}
+                    {results.participation_eligible.toLocaleString("id-ID")} pemilih
+                  </span>
+                  <small>{results.participation_percentage}%</small>
+                </>
+              ) : (
+                `${results.participation_percentage}%`
+              )}
+            </strong>
+          </div>
+        )}
+      </aside>
+
       <div className="results-main">
         <h1>{results.title}</h1>
         <div className="results-list">
@@ -73,32 +100,6 @@ export function ResultsContent({ results }: { results: PublicResults }) {
           })}
         </div>
       </div>
-
-      <aside className="results-aside" aria-label="Ringkasan pemilihan">
-        <div className="results-total">
-          <span>Total suara</span>
-          <strong>{results.total_votes.toLocaleString("id-ID")}</strong>
-        </div>
-        {"participation_percentage" in results && (
-          <div className="results-total">
-            <span>Partisipasi</span>
-            <strong className="results-participation-value">
-              {results.participation_voted !== undefined &&
-              results.participation_eligible !== undefined ? (
-                <>
-                  <span>
-                    {results.participation_voted.toLocaleString("id-ID")} dari{" "}
-                    {results.participation_eligible.toLocaleString("id-ID")} pemilih
-                  </span>
-                  <small>{results.participation_percentage}%</small>
-                </>
-              ) : (
-                `${results.participation_percentage}%`
-              )}
-            </strong>
-          </div>
-        )}
-      </aside>
     </div>
   );
 }

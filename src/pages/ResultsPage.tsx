@@ -59,7 +59,6 @@ export default function ResultsPage() {
           </div>
         </div>
         <Notice kind="error">{error}</Notice>
-        <Notice kind="error">{error}</Notice>
         {loading && !results ? (
           <LoadingScreen message="Memuat informasi hasil…" />
         ) : results ? (
