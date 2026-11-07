@@ -25,6 +25,9 @@ export function CandidateForm({
   const [name, setName] = useState(candidate?.name ?? "");
   const [vision, setVision] = useState(candidate?.vision ?? "");
   const [mission, setMission] = useState(candidate?.mission ?? "");
+  const [showVisionMission, setShowVisionMission] = useState(
+    candidate?.show_vision_mission ?? true,
+  );
   const [imageUrl, setImageUrl] = useState(candidate?.image_url ?? "");
   const [active, setActive] = useState(candidate?.active ?? true);
   const [photo, setPhoto] = useState<File | null>(null);
@@ -83,6 +86,7 @@ export function CandidateForm({
           name: name.trim(),
           vision,
           mission,
+          showVisionMission,
           imageUrl: removePhoto && !photo ? "" : imageUrl.trim(),
           active,
           photo,
@@ -95,6 +99,7 @@ export function CandidateForm({
         setName("");
         setVision("");
         setMission("");
+        setShowVisionMission(true);
         setImageUrl("");
         setActive(true);
         setPhoto(null);
@@ -161,6 +166,12 @@ export function CandidateForm({
         />
       )}
 
+      <Checkbox
+        label="Tampilkan visi dan misi di halaman voting"
+        checked={showVisionMission}
+        onChange={(event) => setShowVisionMission(event.currentTarget.checked)}
+      />
+
       <Field label="Visi" htmlFor={`candidate-vision-${candidate?.id ?? "new"}`}>
         <Textarea
           id={`candidate-vision-${candidate?.id ?? "new"}`}
@@ -198,6 +209,7 @@ export function CandidateForm({
           name={name}
           vision={vision}
           mission={mission}
+          showVisionMission={showVisionMission}
           imageUrl={previewImage}
         />
       </div>
@@ -226,10 +238,17 @@ interface CandidatePreviewProps {
   name: string;
   vision: string;
   mission: string;
+  showVisionMission: boolean;
   imageUrl: string;
 }
 
-function CandidatePreview({ name, vision, mission, imageUrl }: CandidatePreviewProps) {
+function CandidatePreview({
+  name,
+  vision,
+  mission,
+  showVisionMission,
+  imageUrl,
+}: CandidatePreviewProps) {
   return (
     <article className="preview-card">
       {imageUrl ? (
@@ -241,10 +260,14 @@ function CandidatePreview({ name, vision, mission, imageUrl }: CandidatePreviewP
       )}
       <div className="preview-copy">
         <h3>{name || "Nama kandidat"}</h3>
-        <strong>Visi</strong>
-        <p>{vision || "-"}</p>
-        <strong>Misi</strong>
-        <p>{mission || "-"}</p>
+        {showVisionMission && (
+          <>
+            <strong>Visi</strong>
+            <p>{vision || "-"}</p>
+            <strong>Misi</strong>
+            <p>{mission || "-"}</p>
+          </>
+        )}
       </div>
     </article>
   );

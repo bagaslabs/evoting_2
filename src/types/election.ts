@@ -34,6 +34,7 @@ export interface Candidate {
   name: string;
   vision: string;
   mission: string;
+  show_vision_mission: boolean;
   image_url: string;
   active: boolean;
   votes: number;
@@ -179,6 +180,7 @@ export interface DeviceCandidate {
   name: string;
   vision: string;
   mission: string;
+  show_vision_mission: boolean;
   image_url: string;
 }
 
@@ -216,6 +218,7 @@ export interface CandidateInput {
   name: string;
   vision: string;
   mission: string;
+  showVisionMission: boolean;
   imageUrl: string;
   active: boolean;
   photo: File | null;

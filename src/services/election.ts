@@ -210,6 +210,7 @@ export async function saveCandidate(
     p_name: input.name,
     p_vision: input.vision,
     p_mission: input.mission,
+    p_show_vision_mission: input.showVisionMission,
     p_image_url: requestedImageUrl,
     p_active: input.active,
   };

@@ -22,8 +22,7 @@ export function VotingBallot({
       <p className="section-marker">Pilih satu kandidat</p>
       <h2>Pilihan Anda bersifat rahasia.</h2>
       <p className="muted">
-        Periksa visi dan misi setiap kandidat. Suara tidak dapat diubah setelah
-        dikirim.
+        Perhatikan informasi setiap kandidat. Suara tidak dapat diubah setelah dikirim.
       </p>
 
       <div className="ballot-list">
@@ -50,10 +49,14 @@ export function VotingBallot({
               </div>
               <div className="candidate-copy">
                 <h3>{candidate.name}</h3>
-                <strong>Visi</strong>
-                <p>{candidate.vision || "-"}</p>
-                <strong>Misi</strong>
-                <p>{candidate.mission || "-"}</p>
+                {candidate.show_vision_mission && (
+                  <>
+                    <strong>Visi</strong>
+                    <p>{candidate.vision || "-"}</p>
+                    <strong>Misi</strong>
+                    <p>{candidate.mission || "-"}</p>
+                  </>
+                )}
               </div>
               <Button
                 className="vote-button"
