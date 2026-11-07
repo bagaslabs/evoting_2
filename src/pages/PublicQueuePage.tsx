@@ -135,22 +135,19 @@ export default function PublicQueuePage() {
               ) : (
                 <>
                   <strong className="public-queue-number">
-                    <span
-                      className={
-                        entry.numberChanged
-                          ? "public-queue-number-blink"
-                          : undefined
-                      }
-                    >
-                      {entry.voter_suffix}
-                    </span>
+                    {entry.voter_suffix}
                   </strong>
                   <span className="public-queue-voter-name">
                     {entry.voter_name}
                   </span>
+                  {entry.voter_started_at && (
+                    <span className="public-queue-status">
+                      Sedang memilih
+                    </span>
+                  )}
                   {entry.assigned_at && (
                     <span className="public-queue-elapsed">
-                      Berjalan{" "}
+                      Durasi{" "}
                       {formatElapsedTime(entry.assigned_at, now) ?? "--:--"}
                     </span>
                   )}
