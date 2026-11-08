@@ -354,6 +354,18 @@ export function verifyVoterForDevice(
   });
 }
 
+export function clearVoterStartedForDevice(
+  token: string,
+  clientId: string,
+  nim: string,
+) {
+  return rpc<void>("clear_voter_started_for_device", {
+    p_token: token,
+    p_client_id: clientId,
+    p_nim: nim,
+  });
+}
+
 export function getCandidatesForDevice(
   token: string,
   clientId: string,

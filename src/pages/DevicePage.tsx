@@ -14,6 +14,7 @@ import { Notice } from "../components/ui/Notice";
 import type { NoticeKind } from "../components/ui/Notice";
 import {
   castVote,
+  clearVoterStartedForDevice,
   getCandidatesForDevice,
   pollVotingDevice,
   verifyVoterForDevice,
@@ -132,6 +133,17 @@ export default function DevicePage() {
     setNotice(null);
     setStage("idle");
   }, []);
+
+  async function handleBackFromBiodata() {
+    if (!verifiedVoter) return;
+
+    try {
+      await clearVoterStartedForDevice(token, clientId, verifiedVoter.nim);
+      returnToQueue();
+    } catch (error) {
+      setNotice({ kind: "error", message: getErrorMessage(error) });
+    }
+  }
 
   useEffect(() => {
     if (stage !== "thanks") return;
@@ -277,7 +289,7 @@ export default function DevicePage() {
         <VoterBiodata
           voter={verifiedVoter}
           onContinue={handleContinue}
-          onBack={returnToQueue}
+          onBack={handleBackFromBiodata}
         />
       ) : (
         renderEntry("idle")

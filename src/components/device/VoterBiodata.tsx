@@ -6,18 +6,29 @@ import { Button } from "../ui/Button";
 interface VoterBiodataProps {
   voter: VerifiedVoter;
   onContinue: () => Promise<void>;
-  onBack: () => void;
+  onBack: () => Promise<void>;
 }
 
 export function VoterBiodata({ voter, onContinue, onBack }: VoterBiodataProps) {
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState<"continue" | "back" | null>(
+    null,
+  );
 
   async function handleContinue() {
-    setBusy(true);
+    setBusyAction("continue");
     try {
       await onContinue();
     } finally {
-      setBusy(false);
+      setBusyAction(null);
+    }
+  }
+
+  async function handleBack() {
+    setBusyAction("back");
+    try {
+      await onBack();
+    } finally {
+      setBusyAction(null);
     }
   }
 
@@ -43,11 +54,17 @@ export function VoterBiodata({ voter, onContinue, onBack }: VoterBiodataProps) {
           <dd>{voter.status_saat_ini || "-"}</dd>
         </div>
       </dl>
-      <Button onClick={handleContinue} disabled={busy}>
-        {busy ? "Memuat kandidat…" : "Lanjut ke halaman voting"}
+      <Button onClick={() => void handleContinue()} disabled={busyAction !== null}>
+        {busyAction === "continue"
+          ? "Memuat kandidat…"
+          : "Lanjut ke halaman voting"}
       </Button>
-      <Button variant="ghost" onClick={onBack} disabled={busy}>
-        Salah biodata? Kembali
+      <Button
+        variant="ghost"
+        onClick={() => void handleBack()}
+        disabled={busyAction !== null}
+      >
+        {busyAction === "back" ? "Mengembalikan…" : "Salah biodata? Kembali"}
       </Button>
     </div>
   );
