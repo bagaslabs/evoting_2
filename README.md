@@ -1,4 +1,4 @@
-# E-Voting Ketua Angkatan Teknik Elektro
+# E-Voting Ketua Angkatan
 
 Aplikasi pemilihan Ketua Angkatan Teknik Elektro Universitas Jember. Frontend
 React 19 + Vite + TypeScript dengan Supabase sebagai backend autentikasi, RPC,
