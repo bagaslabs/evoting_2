@@ -78,7 +78,7 @@ export default function DevicePage() {
   const [voteError, setVoteError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token || !POLLABLE_STAGES.includes(stage)) return;
+    if (!token) return;
 
     let cancelled = false;
 
@@ -88,14 +88,16 @@ export default function DevicePage() {
         if (cancelled) return;
 
         setConnection("Terhubung · antrean diperbarui");
-        setNotice(null);
-        const next: DeviceStage =
-          result.status === "empty"
-            ? "empty"
-            : result.status === "open"
-              ? "idle"
-              : result.status;
-        setStage((current) => (current === next ? current : next));
+        if (POLLABLE_STAGES.includes(stage)) {
+          setNotice(null);
+          const next: DeviceStage =
+            result.status === "empty"
+              ? "empty"
+              : result.status === "open"
+                ? "idle"
+                : result.status;
+          setStage((current) => (current === next ? current : next));
+        }
       } catch (loadError) {
         if (!cancelled) {
           if (isDeviceBoundError(loadError)) {
