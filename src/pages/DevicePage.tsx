@@ -65,6 +65,8 @@ export default function DevicePage() {
     () => localStorage.getItem(DEVICE_TOKEN_KEY) ?? "",
   );
   const [stage, setStage] = useState<DeviceStage>("idle");
+  const stageRef = useRef(stage);
+  const pollInFlight = useRef(false);
   const [verifiedVoter, setVerifiedVoter] = useState<VerifiedVoter | null>(null);
   const [voterMatches, setVoterMatches] = useState<VerifiedVoter[]>([]);
   const [candidates, setCandidates] = useState<DeviceCandidate[]>([]);
@@ -78,17 +80,29 @@ export default function DevicePage() {
   const [voteError, setVoteError] = useState<string | null>(null);
 
   useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+
+  useEffect(() => {
     if (!token) return;
 
     let cancelled = false;
+    let timer: number | undefined;
 
     const poll = async () => {
+      if (cancelled) return;
+      if (pollInFlight.current) {
+        timer = window.setTimeout(() => void poll(), 2500);
+        return;
+      }
+
+      pollInFlight.current = true;
       try {
         const result = await pollVotingDevice(token, clientId);
         if (cancelled) return;
 
         setConnection("Terhubung · antrean diperbarui");
-        if (POLLABLE_STAGES.includes(stage)) {
+        if (POLLABLE_STAGES.includes(stageRef.current)) {
           setNotice(null);
           const next: DeviceStage =
             result.status === "empty"
@@ -96,7 +110,11 @@ export default function DevicePage() {
               : result.status === "open"
                 ? "idle"
                 : result.status;
-          setStage((current) => (current === next ? current : next));
+          setStage((current) =>
+            POLLABLE_STAGES.includes(current) && current !== next
+              ? next
+              : current,
+          );
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -111,17 +129,21 @@ export default function DevicePage() {
             setConnection("Koneksi terputus · assignment tetap tersimpan");
           }
         }
+      } finally {
+        pollInFlight.current = false;
+        if (!cancelled) {
+          timer = window.setTimeout(() => void poll(), 2500);
+        }
       }
     };
 
     void poll();
-    const timer = window.setInterval(() => void poll(), 2500);
 
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [clientId, token, stage]);
+  }, [clientId, token]);
 
   useEffect(() => {
     setNotice(null);
