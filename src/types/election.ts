@@ -21,6 +21,32 @@ export interface ElectionRound {
   candidate_ids: string[];
 }
 
+export interface RoundArchive {
+  round: {
+    number: number;
+    title: string;
+    created_at: string;
+    eligible_voters_at_start: number | null;
+  };
+  totals: {
+    ballots: number;
+    voted: number;
+    eligible_not_voted: number;
+    non_eligible: number;
+  };
+  candidates: Array<{
+    name: string;
+    votes: number;
+    percentage: number;
+  }>;
+  voters: {
+    voted: Array<{ nama: string; nim: string; eligible_now: boolean; cast_at: string }>;
+    eligible_not_voted: Array<{ nama: string; nim: string }>;
+    non_eligible: Array<{ nama: string; nim: string }>;
+  };
+  eligibility_note: string;
+}
+
 export interface ElectionStatistics {
   eligible: number;
   voted: number;

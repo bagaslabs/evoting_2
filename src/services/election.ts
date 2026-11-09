@@ -12,6 +12,7 @@ import type {
   ElectionState,
   PublicQueueEntry,
   PublicResults,
+  RoundArchive,
   VerifyVoterResult,
 } from "../types/election";
 import { CANDIDATE_PHOTOS_BUCKET } from "../utils/constants";
@@ -113,6 +114,12 @@ export function selectElectionRound(roundId: string) {
 
 export function deleteElectionRound(roundId: string) {
   return rpc<void>("delete_election_round", { p_round_id: roundId });
+}
+
+export function fetchRoundArchive(roundNumber: number) {
+  return rpc<RoundArchive>("get_admin_round_archive", {
+    p_round_number: roundNumber,
+  });
 }
 
 export function createVotingDevice(name: string) {

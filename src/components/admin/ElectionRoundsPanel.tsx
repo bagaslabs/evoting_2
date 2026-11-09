@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import type { Candidate, ElectionRound, ElectionSettings } from "../../types/election";
+import type { Candidate, ElectionRound, ElectionSettings, RoundArchive } from "../../types/election";
 import { getErrorMessage } from "../../utils/errors";
 import { Button } from "../ui/Button";
 import { Checkbox } from "../ui/Checkbox";
@@ -17,6 +17,7 @@ interface ElectionRoundsPanelProps {
   onSelect: (roundId: string) => Promise<void>;
   onDelete: (round: ElectionRound) => void;
   onRename: (round: ElectionRound) => void;
+  onExport: (roundNumber: number) => Promise<RoundArchive>;
 }
 
 export function ElectionRoundsPanel({
@@ -27,6 +28,7 @@ export function ElectionRoundsPanel({
   onSelect,
   onDelete,
   onRename,
+  onExport,
 }: ElectionRoundsPanelProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
     candidates.filter((candidate) => candidate.active).map(({ id }) => id),
@@ -34,6 +36,7 @@ export function ElectionRoundsPanel({
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exportingRound, setExportingRound] = useState<number | null>(null);
 
   const canChangeRound =
     election.election_state === "closed" && busy === false;
@@ -60,6 +63,27 @@ export function ElectionRoundsPanel({
       setError(getErrorMessage(selectError));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleExport(round: ElectionRound) {
+    setExportingRound(round.round_number);
+    setError(null);
+    try {
+      const archive = await onExport(round.round_number);
+      const blob = new Blob([JSON.stringify(archive, null, 2)], {
+        type: "application/json;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `arsip-babak-${round.round_number}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (exportError) {
+      setError(getErrorMessage(exportError));
+    } finally {
+      setExportingRound(null);
     }
   }
 
@@ -109,6 +133,16 @@ export function ElectionRoundsPanel({
                   >
                     Lihat hasil
                   </Link>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={exportingRound !== null}
+                    onClick={() => void handleExport(round)}
+                  >
+                    {exportingRound === round.round_number
+                      ? "Menyiapkan…"
+                      : "Unduh arsip"}
+                  </Button>
                   <Button
                     size="sm"
                     variant="secondary"

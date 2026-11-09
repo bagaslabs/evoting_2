@@ -34,6 +34,7 @@ import {
   deleteVotingDevice,
   deleteVoter,
   forceReleaseDevice,
+  fetchRoundArchive,
   getCurrentSession,
   importVoters,
   isPermissionError,
@@ -698,6 +699,7 @@ export default function AdminPage() {
         onSelect={handleSelectRound}
         onDelete={openDeleteRound}
         onRename={openRenameRound}
+        onExport={fetchRoundArchive}
       />
 
       <div className="admin-grid">
